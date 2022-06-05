@@ -19,36 +19,45 @@ public class InputManager implements KeyListener, MouseListener{
         GameStatus status = engine.getGameStatus();
         ButtonAction currentAction = ButtonAction.NO_ACTION;
 
-        if (keyCode == KeyEvent.VK_UP) {
-            if(status == GameStatus.START_SCREEN || status == GameStatus.MAP_SELECTION)
+        if (status != GameStatus.RUNNING && status != GameStatus.PAUSED) {
+            if (keyCode == KeyEvent.VK_UP) {
                 currentAction = ButtonAction.GO_UP;
-            else
-                currentAction = ButtonAction.JUMP;
-        }
-        else if(keyCode == KeyEvent.VK_DOWN){
-            if(status == GameStatus.START_SCREEN || status == GameStatus.MAP_SELECTION)
+            }
+            else if(keyCode == KeyEvent.VK_DOWN) {
                 currentAction = ButtonAction.GO_DOWN;
-        }
-        else if (keyCode == KeyEvent.VK_RIGHT) {
-            currentAction = ButtonAction.M_RIGHT;
-        }
-        else if (keyCode == KeyEvent.VK_LEFT) {
-            currentAction = ButtonAction.M_LEFT;
-        }
-        else if (keyCode == KeyEvent.VK_ENTER) {
-            currentAction = ButtonAction.SELECT;
-        }
-        else if (keyCode == KeyEvent.VK_ESCAPE) {
-            if(status == GameStatus.RUNNING || status == GameStatus.PAUSED )
-                currentAction = ButtonAction.PAUSE_RESUME;
-            else
+            }
+            else if (keyCode == KeyEvent.VK_ENTER) {
+                currentAction = ButtonAction.SELECT;
+            }
+            else if (keyCode == KeyEvent.VK_ESCAPE) {
                 currentAction = ButtonAction.GO_TO_START_SCREEN;
-
+            }
         }
-        else if (keyCode == KeyEvent.VK_SPACE){
-            currentAction = ButtonAction.FIRE;
+        else if (status == GameStatus.RUNNING) {
+            if (!engine.isSoarControlled()) {
+                if (keyCode == KeyEvent.VK_UP) {
+                    currentAction = ButtonAction.JUMP;
+                }
+                else if (keyCode == KeyEvent.VK_RIGHT) {
+                    currentAction = ButtonAction.M_RIGHT;
+                }
+                else if (keyCode == KeyEvent.VK_LEFT) {
+                    currentAction = ButtonAction.M_LEFT;
+                }
+                else if (keyCode == KeyEvent.VK_SPACE){
+                    currentAction = ButtonAction.FIRE;
+                }
+            }
+            
+            if (keyCode == KeyEvent.VK_ESCAPE) {
+                currentAction = ButtonAction.PAUSE_RESUME;
+            }
         }
-
+        else if (status == GameStatus.PAUSED) {
+            if (keyCode == KeyEvent.VK_ESCAPE) {
+                currentAction = ButtonAction.PAUSE_RESUME;
+            }
+        }
 
         notifyInput(currentAction);
     }

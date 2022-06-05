@@ -1,0 +1,31 @@
+soar wait-snc on
+
+sp {elaborate*move-right
+    (state <s> ^io <io>)
+    (<io> ^input-link <il>
+        ^output-link <ol>)
+    (<il> ^mario.body <m-body>)
+    (<m-body> ^width <w>
+            ^x-absolute <x>)
+    -{(<il> ^bricks.brick <b>)
+      (<b> ^x-relative {> 0 < 400}
+           ^y-relative {> -100 < 100>})}
+    -->
+    (<ol> ^key-right true
+        ^message |RIGHT!|)}
+
+
+sp {elaborate*jump
+    (state <s> ^io <io>)
+    (<io> ^input-link <il>
+        ^output-link <ol>)
+    (<il> ^mario.body <m-body>)
+    (<m-body> ^width <w>
+            ^x-absolute <x>
+            ^y-speed < 0.1)
+    (<il> ^bricks.brick <b>)
+    (<b> ^x-relative {> 0 < 400}
+        ^y-relative {> -100 < 100>})
+    -->
+    (<ol> ^key-A true
+        ^message |Jumping for joy!|)}

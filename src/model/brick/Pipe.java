@@ -9,5 +9,6 @@ public class Pipe extends Brick{
         setBreakable(false);
         setEmpty(true);
         setDimension(96, 96);
+        setType("pipe");
     }
 }

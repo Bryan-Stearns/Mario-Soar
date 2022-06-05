@@ -21,6 +21,7 @@ public class UIManager extends JPanel{
     private MapSelection mapSelection;
 
     public UIManager(GameEngine engine, int width, int height) {
+        //this.setLayout(null);
         setPreferredSize(new Dimension(width, height));
         setMaximumSize(new Dimension(width, height));
         setMinimumSize(new Dimension(width, height));
@@ -46,6 +47,7 @@ public class UIManager extends JPanel{
             gameFont = new Font("Verdana", Font.PLAIN, 12);
             e.printStackTrace();
         }
+
     }
 
     @Override
@@ -184,4 +186,5 @@ public class UIManager extends JPanel{
     public int changeSelectedMap(int index, boolean up){
         return mapSelection.changeSelectedMap(index, up);
     }
+
 }

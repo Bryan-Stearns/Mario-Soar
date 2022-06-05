@@ -3,12 +3,15 @@ package manager;
 public class Camera {
 
     private double x, y;
+    private int width, height;
     private int frameNumber;
     private boolean shaking;
 
-    public Camera(){
+    public Camera(int width, int height){
         this.x = 0;
         this.y = 0;
+        this.width = width;
+        this.height = height;
         this.frameNumber = 25;
         this.shaking = false;
     }
@@ -27,6 +30,14 @@ public class Camera {
 
     public void setY(double y) {
         this.y = y;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public void shakeCamera() {

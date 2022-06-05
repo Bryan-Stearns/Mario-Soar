@@ -14,6 +14,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import manager.Camera;
+
 public class Map {
 
     private double remainingTime;
@@ -28,11 +30,13 @@ public class Map {
     private BufferedImage backgroundImage;
     private double bottomBorder = 720 - 96;
     private String path;
+    private Camera camera;
 
 
-    public Map(double remainingTime, BufferedImage backgroundImage) {
+    public Map(double remainingTime, BufferedImage backgroundImage, Camera camera) {
         this.backgroundImage = backgroundImage;
         this.remainingTime = remainingTime;
+        this.camera = camera;
     }
 
 
@@ -63,6 +67,26 @@ public class Map {
         allBricks.addAll(groundBricks);
 
         return allBricks;
+    }
+
+    public ArrayList<Brick> getAllVisibleBricks(boolean includeGround) {
+        ArrayList<Brick> visBricks = new ArrayList<>();
+
+        for (Brick b : bricks) {
+            // Treat a brick as visisble if it's within the horizontal scope of the camera
+            if (b != null && (b.getX()+b.getDimension().width > camera.getX() && b.getX() < camera.getX()+camera.getWidth()+b.getDimension().width)) {
+                visBricks.add(b);
+            }
+        }
+        if (includeGround) {
+            for (Brick b : groundBricks) {
+                if (b.getX()+b.getDimension().width > camera.getX() && b.getX() < camera.getX()+camera.getWidth()+b.getDimension().width) {
+                    visBricks.add(b);
+                }
+            }
+        }
+
+        return visBricks;
     }
 
     public void addBrick(Brick brick) {
@@ -109,14 +133,18 @@ public class Map {
     }
 
     private void drawBricks(Graphics2D g2) {
-        for(Brick brick : bricks){
+        for (Brick brick : getAllVisibleBricks(true)) {
+            brick.draw(g2);
+        }
+
+        /*for(Brick brick : bricks){
             if(brick != null)
                 brick.draw(g2);
         }
 
         for(Brick brick : groundBricks){
             brick.draw(g2);
-        }
+        }*/
     }
 
     private void drawEnemies(Graphics2D g2) {

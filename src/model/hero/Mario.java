@@ -65,6 +65,14 @@ public class Mario extends GameObject{
         this.toRight = toRight;
     }
 
+    public double getRelativeX(double xOther) {
+        return (xOther - getX());
+    }
+
+    public double getRelativeY(double yOther) {
+        return (yOther - getY());
+    }
+
     public boolean onTouchEnemy(GameEngine engine){
 
         if(!marioForm.isSuper() && !marioForm.isFire()){

@@ -20,6 +20,7 @@ public class OrdinaryBrick extends Brick {
         super(x, y, style);
         setBreakable(true);
         setEmpty(true);
+        setType("ordinary");
 
         setAnimation();
         breaking = false;

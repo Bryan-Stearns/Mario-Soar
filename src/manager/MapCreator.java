@@ -22,8 +22,10 @@ class MapCreator {
     private BufferedImage ordinaryBrick, surpriseBrick, groundBrick, pipe;
     private BufferedImage goombaLeft, goombaRight, koopaLeft, koopaRight, endFlag;
 
+    private Camera camera;
 
-    MapCreator(ImageLoader imageLoader) {
+
+    MapCreator(ImageLoader imageLoader, Camera camera) {
 
         this.imageLoader = imageLoader;
         BufferedImage sprite = imageLoader.loadImage("/sprite.png");
@@ -43,6 +45,7 @@ class MapCreator {
         this.koopaRight = imageLoader.getSubImage(sprite, 4, 3, 48, 64);
         this.endFlag = imageLoader.getSubImage(sprite, 5, 1, 48, 48);
 
+        this.camera = camera;
     }
 
     Map createMap(String mapPath, double timeLimit) {
@@ -53,7 +56,7 @@ class MapCreator {
             return null;
         }
 
-        Map createdMap = new Map(timeLimit, backgroundImage);
+        Map createdMap = new Map(timeLimit, backgroundImage, camera);
         String[] paths = mapPath.split("/");
         createdMap.setPath(paths[paths.length-1]);
 
@@ -113,7 +116,7 @@ class MapCreator {
             }
         }
 
-        System.out.println("Map is created..");
+        //System.out.println("Map is created..");
         return createdMap;
     }
 

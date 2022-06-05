@@ -39,7 +39,7 @@ public abstract class GameObject {
             g.drawImage(style, (int)x, (int)y, null);
         }
 
-        //for debugging
+        //for debugging: show collision boxes
         /*Graphics2D g2 = (Graphics2D)g;
         g2.setColor(Color.WHITE);
 
@@ -47,6 +47,11 @@ public abstract class GameObject {
         g2.draw(getBottomBounds());
         g2.draw(getRightBounds());
         g2.draw(getLeftBounds());*/
+
+        // for debugging: show coordinates
+        /*Graphics2D g2 = (Graphics2D)g;
+        g2.setColor(Color.WHITE);
+        g2.drawString(String.format("%d,%d", (int)x, (int)y), (int)x, (int)y);*/
     }
 
     public void updateLocation() {

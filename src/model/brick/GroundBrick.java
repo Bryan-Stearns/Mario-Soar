@@ -8,6 +8,7 @@ public class GroundBrick extends Brick{
         super(x, y, style);
         setBreakable(false);
         setEmpty(true);
+        setType("ground");
     }
 
 }

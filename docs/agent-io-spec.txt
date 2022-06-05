@@ -1,0 +1,74 @@
+input-link
+    ^mario
+        ^hud
+            ^time INT
+            ^points INT
+            ^lives INT
+        ^body
+            ^x-absolute INT
+            ^y-absolute INT
+            ^x-speed FLOAT
+            ^y-speed FLOAT
+            ^is-super STRING    # << true false >>
+            ^is-fire STRING     # << true false >>
+            ^height INT
+            ^width INT
+    ^enemies
+        ^enemy
+            ^type STRING        # << goomba koopatroopa >>
+            ^x-absolute INT
+            ^y-absolute INT
+            ^x-relative INT
+            ^y-relative INT
+            ^x-speed FLOAT
+            ^y-speed FLOAT
+    ^bricks
+        ^brick
+            ^type STRING        # << ordinary ground surprise >>
+            ^breakable STRING   # << true false >>
+            ^x-absolute INT
+            ^y-absolute INT
+            ^x-relative INT
+            ^y-relative INT
+    ^power-ups
+        ^power-up
+            ^type STRING        # << super-mushroom fire-flower one-up-mushroom >>
+            ^x-absolute INT
+            ^y-absolute INT
+            ^x-relative INT
+            ^y-relative INT
+            ^x-speed FLOAT
+            ^y-speed FLOAT
+    ^coins
+        ^coin
+            ^x-absolute INT
+            ^y-absolute INT
+            ^x-relative INT
+            ^y-relative INT
+    ^pipes
+        ^pipe
+            ^x-absolute INT     # Coordinates refer to the top left
+            ^y-absolute INT
+            ^x-relative INT
+            ^y-relative INT
+            ^height INT
+            ^width INT
+    ^special
+        ^end-flag
+            ^x-absolute INT     # Coordinates refer to the top left
+            ^y-absolute INT
+            ^x-relative INT
+            ^y-relative INT
+            ^height INT
+        
+
+output-link
+    ^key-press
+        #^value up       # Go up pipes / ladders
+        #^value down      # Go down pipes / ladders
+        ^value left      # Move left
+        ^value right     # Move right
+        ^value A         # Jump
+        ^value B         # Shoot fire, #accelerates if held down
+    ^message
+        ^value STRING     # To display on the screen

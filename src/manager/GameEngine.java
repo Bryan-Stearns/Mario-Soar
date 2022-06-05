@@ -1,5 +1,6 @@
 package manager;
 
+import model.Map;
 import model.hero.Mario;
 import view.ImageLoader;
 import view.StartScreenSelection;
@@ -22,8 +23,21 @@ public class GameEngine implements Runnable {
     private Thread thread;
     private StartScreenSelection startScreenSelection = StartScreenSelection.START_GAME;
     private int selectedMap = 0;
+    private JFrame frame;
 
-    private GameEngine() {
+    private boolean soarControlled = false;
+    private String soarAgentPath = null;
+    private MarioSoarLink soarLink;
+
+    private JTextField //jtext_humanInput,
+                        jtext_agentOutput;
+
+    private GameEngine(String agentPath) {
+        if (agentPath != null) {
+            this.soarAgentPath = agentPath;
+            this.soarControlled = true;
+        }
+
         init();
     }
 
@@ -31,20 +45,41 @@ public class GameEngine implements Runnable {
         imageLoader = new ImageLoader();
         InputManager inputManager = new InputManager(this);
         gameStatus = GameStatus.START_SCREEN;
-        camera = new Camera();
+        camera = new Camera(WIDTH, HEIGHT);
         uiManager = new UIManager(this, WIDTH, HEIGHT);
         soundManager = new SoundManager();
-        mapManager = new MapManager();
+        mapManager = new MapManager(camera);
 
-        JFrame frame = new JFrame("Super Mario Bros.");
-        frame.add(uiManager);
+        frame = new JFrame("Super Mario Bros.");
+        frame.add(uiManager, BorderLayout.CENTER);
         frame.addKeyListener(inputManager);
         frame.addMouseListener(inputManager);
+
+        // Create text areas for Soar to interact with, even if not initially SoarControlled, in case control is enabled during the run
+        //jtext_humanInput = new JTextField();
+        //jtext_humanInput.setEditable(true);
+        //jtext_humanInput.setBounds(50, height-30, 200, 30);
+        //this.add(jtext_humanInput);
+        jtext_agentOutput = new JTextField();
+        jtext_agentOutput.setEditable(false);
+        jtext_agentOutput.setBounds(8, HEIGHT-30, WIDTH/2, 30);
+        frame.add(jtext_agentOutput, BorderLayout.SOUTH);
+        
         frame.pack();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setResizable(false);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+
+
+        setAgentTextBoxVisible(soarControlled);
+
+        // Inserted code to make game start on first map
+        if (soarControlled) {
+            System.out.println("Running game controlled by Soar agent: "+soarAgentPath);
+            selectMapViaIndex(0);
+            soarLink = new MarioSoarLink(soarAgentPath, this);
+        }
 
         start();
     }
@@ -58,13 +93,16 @@ public class GameEngine implements Runnable {
         thread.start();
     }
 
-    private void reset(){
+    private void reset() {
+        if (isSoarControlled()) {
+            setAgentTextBoxVisible(false);
+        }
         resetCamera();
         setGameStatus(GameStatus.START_SCREEN);
     }
 
     public void resetCamera(){
-        camera = new Camera();
+        camera = new Camera(WIDTH, HEIGHT);
         soundManager.restartBackground();
     }
 
@@ -75,8 +113,23 @@ public class GameEngine implements Runnable {
         }
     }
 
+    /**
+     * Get the path to the .png map that defines the map. The valid .png names are kept by uiManager.
+     * Then pass this .png path to createMap, which will generate the level from the .png data.
+     */
     public void selectMapViaKeyboard(){
         String path = uiManager.selectMapViaKeyboard(selectedMap);
+        if (path != null) {
+            createMap(path);
+        }
+    }
+
+    /**
+     * Use the given index of map kept by uiManager. Get the corresponding .png path.
+     * Then pass this .png path to createMap, which will generate the level from the .png data.
+     */
+    public void selectMapViaIndex(int index){
+        String path = uiManager.selectMapViaKeyboard(index);
         if (path != null) {
             createMap(path);
         }
@@ -88,11 +141,13 @@ public class GameEngine implements Runnable {
 
     private void createMap(String path) {
         boolean loaded = mapManager.createMap(imageLoader, path);
-        if(loaded){
+        if (loaded) {
             setGameStatus(GameStatus.RUNNING);
             soundManager.restartBackground();
+            if (isSoarControlled()) {
+                setAgentTextBoxVisible(true);
+            }
         }
-
         else
             setGameStatus(GameStatus.START_SCREEN);
     }
@@ -109,10 +164,16 @@ public class GameEngine implements Runnable {
 
             long now = System.nanoTime();
             delta += (now - lastTime) / ns;
+            if (delta > 1)  // Disable catch-up
+                delta = 1;
             lastTime = now;
             while (delta >= 1) {
                 if (gameStatus == GameStatus.RUNNING) {
                     gameLoop();
+                    if (soarControlled) {
+                        mapManager.updateSoarInput(soarLink);
+                        soarLink.runAgent(1);
+                    }
                 }
                 delta--;
             }
@@ -221,6 +282,9 @@ public class GameEngine implements Runnable {
         }
 
         if(input == ButtonAction.GO_TO_START_SCREEN){
+            if (isSoarControlled()) {
+                setAgentTextBoxVisible(false);
+            }
             setGameStatus(GameStatus.START_SCREEN);
         }
     }
@@ -335,8 +399,30 @@ public class GameEngine implements Runnable {
         return mapManager;
     }
 
+    public boolean isSoarControlled() {
+        return soarControlled;
+    }
+
+    public void setAgentMessage(String s) {
+        jtext_agentOutput.setText("AGENT: "+s);
+    }
+
+    public void setAgentTextBoxVisible(boolean show) {
+        jtext_agentOutput.setVisible(show);
+        // This update caused the text box to steal focus, so request focus back to the frame so that the key listener works
+        frame.requestFocus();
+    }
+
     public static void main(String... args) {
-        new GameEngine();
+        if (args.length > 0) {
+            // If there is an arg, assume it's the path to a Soar agent
+            new GameEngine(args[0]);
+        }
+        else {
+            // If there are no args, run with human control
+            new GameEngine(null);
+        }
+        
     }
 
     public int getRemainingTime() {

@@ -16,6 +16,7 @@ public class SurpriseBrick extends Brick{
         super(x, y, style);
         setBreakable(false);
         setEmpty(false);
+        setType("surprise");
         this.prize = prize;
     }
 

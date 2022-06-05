@@ -18,14 +18,33 @@ import java.util.ArrayList;
 public class MapManager {
 
     private Map map;
+    private Camera camera;
 
-    public MapManager() {}
+    public MapManager(Camera camera) {
+        this.camera = camera;
+    }
 
     public void updateLocations() {
         if (map == null)
             return;
 
         map.updateLocations();
+    }
+
+    public void updateSoarInput(MarioSoarLink soarLink) {
+        if (soarLink == null)
+            return;
+
+        // Clear old input
+        soarLink.cleanInputWMEs();
+
+        // Update Mario input
+        soarLink.addInput_mario(map.getMario(), map.getRemainingTime());
+
+        // Update bricks input
+        //soarLink.addInput_bricks(map.getAllVisibleBricks(true));
+
+        soarLink.getAgent().Commit();
     }
 
     public void resetCurrentMap(GameEngine engine) {
@@ -37,7 +56,7 @@ public class MapManager {
     }
 
     public boolean createMap(ImageLoader loader, String path) {
-        MapCreator mapCreator = new MapCreator(loader);
+        MapCreator mapCreator = new MapCreator(loader, camera);
         map = mapCreator.createMap("/maps/" + path, 400);
 
         return map != null;
@@ -73,6 +92,10 @@ public class MapManager {
 
     public int getCoins() {
         return getMario().getCoins();
+    }
+
+    public Map getMap() {
+        return map;
     }
 
     public void drawMap(Graphics2D g2) {
