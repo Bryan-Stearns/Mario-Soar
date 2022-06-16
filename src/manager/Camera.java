@@ -45,6 +45,15 @@ public class Camera {
         frameNumber = 60;
     }
 
+    public boolean isShaking() {
+        return shaking;
+    }
+
+    public void setLocation(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
     public void moveCam(double xAmount, double yAmount){
         if(shaking && frameNumber > 0){
             int direction = (frameNumber%2 == 0)? 1 : -1;

@@ -13,6 +13,8 @@ input-link
             ^is-fire STRING     # << true false >>
             ^height INT
             ^width INT
+    ^touching
+        ^...                    # Same sub structure as for any other objects
     ^enemies
         ^enemy
             ^type STRING        # << goomba koopatroopa >>

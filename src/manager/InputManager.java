@@ -64,19 +64,23 @@ public class InputManager implements KeyListener, MouseListener{
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if(engine.getGameStatus() == GameStatus.MAP_SELECTION){
+        if (engine.getGameStatus() == GameStatus.MAP_SELECTION) {
             engine.selectMapViaMouse();
         }
     }
 
     @Override
     public void keyReleased(KeyEvent event) {
-        if(event.getKeyCode() == KeyEvent.VK_RIGHT || event.getKeyCode() == KeyEvent.VK_LEFT)
-            notifyInput(ButtonAction.ACTION_COMPLETED);
+        if (event.getKeyCode() == KeyEvent.VK_LEFT)
+            notifyInput(ButtonAction.LEFT_RELEASED);
+        else if (event.getKeyCode() == KeyEvent.VK_RIGHT)
+            notifyInput(ButtonAction.RIGHT_RELEASED);
+        else if (event.getKeyCode() == KeyEvent.VK_UP)
+            notifyInput(ButtonAction.JUMP_RELEASED);
     }
 
     private void notifyInput(ButtonAction action) {
-        if(action != ButtonAction.NO_ACTION)
+        if (action != ButtonAction.NO_ACTION)
             engine.receiveInput(action);
     }
 

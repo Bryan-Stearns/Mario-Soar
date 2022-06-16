@@ -8,5 +8,6 @@ public enum GameStatus {
     MAP_SELECTION,
     HELP_SCREEN,
     MISSION_PASSED,
-    ABOUT_SCREEN
+    ABOUT_SCREEN,
+    MARIO_DEAD
 }

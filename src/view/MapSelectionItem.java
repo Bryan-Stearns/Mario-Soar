@@ -1,12 +1,11 @@
 package view;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
+//import java.awt.image.BufferedImage;
 
 public class MapSelectionItem {
 
-    private BufferedImage image;
+    //private BufferedImage image;
     private String name;
     private Point location;
     private Dimension dimension;
@@ -15,8 +14,8 @@ public class MapSelectionItem {
         this.location = location;
         this.name = map;
 
-        ImageLoader loader = new ImageLoader();
-        this.image = loader.loadImage("/maps/" + map);
+        //ImageLoader loader = new ImageLoader();
+        //this.image = loader.loadImage("/maps/" + map);
 
         this.dimension = new Dimension();
     }

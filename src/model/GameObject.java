@@ -5,17 +5,17 @@ import java.awt.image.BufferedImage;
 
 public abstract class GameObject {
 
-    private double x, y;
+    protected double x, y;
 
-    private double velX, velY;
+    protected double velX, velY;
 
     private Dimension dimension;
 
     private BufferedImage style;
 
-    private double gravityAcc;
+    protected double gravityAcc;
 
-    private boolean falling, jumping;
+    protected boolean falling, jumping;
 
     public GameObject(double x, double y, BufferedImage style){
         setLocation(x, y);
@@ -26,10 +26,14 @@ public abstract class GameObject {
         }
 
         setVelX(0);
-        setVelY(0);
-        setGravityAcc(0.38);
+        setVelYAbs(0);
+        resetGravity();
         jumping = false;
         falling = true;
+    }
+
+    public void resetGravity() {
+        setGravityAcc(0.38);
     }
 
     public void draw(Graphics g) {
@@ -40,13 +44,14 @@ public abstract class GameObject {
         }
 
         //for debugging: show collision boxes
-        /*Graphics2D g2 = (Graphics2D)g;
+        Graphics2D g2 = (Graphics2D)g;
         g2.setColor(Color.WHITE);
 
-        g2.draw(getTopBounds());
+        /*g2.draw(getTopBounds());
         g2.draw(getBottomBounds());
         g2.draw(getRightBounds());
         g2.draw(getLeftBounds());*/
+        //g2.draw(getBounds());
 
         // for debugging: show coordinates
         /*Graphics2D g2 = (Graphics2D)g;
@@ -55,21 +60,24 @@ public abstract class GameObject {
     }
 
     public void updateLocation() {
-        if(jumping && velY <= 0){
+        if (jumping && velY <= 0) {
             jumping = false;
             falling = true;
         }
-        else if(jumping){
+        else if (jumping) {
             velY = velY - gravityAcc;
             y = y - velY;
         }
 
-        if(falling){
+        if (falling) {
             y = y + velY;
             velY = velY + gravityAcc;
         }
 
         x = x + velX;
+
+        if (x < 0)
+            x = 0;
     }
 
     public void setLocation(double x, double y) {
@@ -119,11 +127,11 @@ public abstract class GameObject {
         this.velX = velX;
     }
 
-    public double getVelY() {
+    public double getVelYAbs() {
         return velY;
     }
 
-    public void setVelY(double velY) {
+    public void setVelYAbs(double velY) {
         this.velY = velY;
     }
 
@@ -136,11 +144,13 @@ public abstract class GameObject {
     }
 
     public Rectangle getTopBounds(){
-        return new Rectangle((int)x+dimension.width/6, (int)y, 2*dimension.width/3, dimension.height/2);
+        //return new Rectangle((int)x+dimension.width/6, (int)y, 2*dimension.width/3, dimension.height/4);
+        return new Rectangle((int)x+dimension.width/8, (int)y, 3*dimension.width/4, dimension.height/4);
     }
 
     public Rectangle getBottomBounds(){
         return new Rectangle((int)x+dimension.width/6, (int)y + dimension.height/2, 2*dimension.width/3, dimension.height/2);
+        //return new Rectangle((int)x+dimension.width/8, (int)y + 3*dimension.height/4, 3*dimension.width/4, dimension.height/4);
     }
 
     public Rectangle getLeftBounds(){

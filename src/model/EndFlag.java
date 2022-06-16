@@ -15,7 +15,7 @@ public class EndFlag extends GameObject{
         if(touched){
             if(getY() + getDimension().getHeight() >= 576){
                 setFalling(false);
-                setVelY(0);
+                setVelYAbs(0);
                 setY(576 - getDimension().getHeight());
             }
             super.updateLocation();

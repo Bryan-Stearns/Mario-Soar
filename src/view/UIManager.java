@@ -6,7 +6,6 @@ import manager.GameStatus;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -155,7 +154,7 @@ public class UIManager extends JPanel{
         g2.setFont(gameFont.deriveFont(25f));
         g2.setColor(Color.WHITE);
         String displayedStr = "Points: " + engine.getScore();
-        int stringLength = g2.getFontMetrics().stringWidth(displayedStr);;
+        //int stringLength = g2.getFontMetrics().stringWidth(displayedStr);;
         //g2.drawImage(coinIcon, 50, 10, null);
         g2.drawString(displayedStr, 300, 50);
     }

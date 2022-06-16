@@ -10,7 +10,6 @@ import model.brick.Brick;
 import model.hero.Mario;
 import sml.Agent;
 import sml.Identifier;
-import sml.Kernel;
 import sml.WMElement;
 
 public class MarioSoarLink extends SoarLinkAbstract {
@@ -72,7 +71,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
         marioBody.add_aug("x-absolute", (int)mario.getX());
         marioBody.add_aug("y-absolute", (int)mario.getY());
         marioBody.add_aug("x-speed", mario.getVelX());
-        marioBody.add_aug("y-speed", mario.getVelY());
+        marioBody.add_aug("y-speed", mario.getVelYAbs());
         marioBody.add_aug("is-super", (mario.isSuper() ? "true" : "false"));
         marioBody.add_aug("is-fire", (mario.getMarioForm().isFire() ? "true" : "false"));
         marioBody.add_aug("height", mario.getDimension().height);
@@ -194,7 +193,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
         if (keyPressed_left && !output_keyPressed_left) {
             // Release left key
             keyPressed_left = false;
-            engine.receiveInput(ButtonAction.ACTION_COMPLETED);
+            engine.receiveInput(ButtonAction.LEFT_RELEASED);
         }
         // RIGHT KEY
         if (!keyPressed_right && output_keyPressed_right) {
@@ -205,7 +204,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
         if (keyPressed_right && !output_keyPressed_right) {
             // Release right key
             keyPressed_right = false;
-            engine.receiveInput(ButtonAction.ACTION_COMPLETED);
+            engine.receiveInput(ButtonAction.RIGHT_RELEASED);
         }
         // A KEY
         if (!keyPressed_A && output_keyPressed_A) {
@@ -216,6 +215,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
         if (keyPressed_A && !output_keyPressed_A) {
             // Release A key
             keyPressed_A = false;
+            engine.receiveInput(ButtonAction.JUMP_RELEASED);
         }
         // B KEY
         if (!keyPressed_B && output_keyPressed_B) {

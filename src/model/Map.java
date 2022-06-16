@@ -32,6 +32,8 @@ public class Map {
     private String path;
     private Camera camera;
 
+    private boolean marioDead = false;
+
 
     public Map(double remainingTime, BufferedImage backgroundImage, Camera camera) {
         this.backgroundImage = backgroundImage;
@@ -48,9 +50,36 @@ public class Map {
         this.mario = mario;
     }
 
+    public void setMarioDead(boolean isDead) {
+        if (isDead) {
+            mario.setKeypress_jump(false);
+            mario.setKeypress_moveLeft(false);
+            mario.setKeypress_moveRight(false);
+        }
+        this.marioDead = isDead;
+    }
+
+    public boolean isMarioDead() {
+        return marioDead;
+    }
+
+    public boolean isWithinCamera(GameObject obj) {
+        return (obj.getX()+obj.getDimension().width > camera.getX() && obj.getX() < camera.getX()+camera.getWidth()+obj.getDimension().width);
+    }
+
     public ArrayList<Enemy> getEnemies() {
         return enemies;
     }
+
+    /*public ArrayList<Enemy> getVisibleEnemies() {
+        ArrayList<Enemy> retVal = new ArrayList<Enemy>();
+        for (Enemy e : enemies) {
+            if (e != null && isWithinCamera(e)) {
+                retVal.add(e);
+            }
+        }
+        return retVal;
+    }*/
 
     public ArrayList<Fireball> getFireballs() {
         return fireballs;
@@ -69,25 +98,25 @@ public class Map {
         return allBricks;
     }
 
-    public ArrayList<Brick> getAllVisibleBricks(boolean includeGround) {
+    /*public ArrayList<Brick> getAllVisibleBricks(boolean includeGround) {
         ArrayList<Brick> visBricks = new ArrayList<>();
 
         for (Brick b : bricks) {
             // Treat a brick as visisble if it's within the horizontal scope of the camera
-            if (b != null && (b.getX()+b.getDimension().width > camera.getX() && b.getX() < camera.getX()+camera.getWidth()+b.getDimension().width)) {
+            if (b != null && isWithinCamera(b)) {
                 visBricks.add(b);
             }
         }
         if (includeGround) {
             for (Brick b : groundBricks) {
-                if (b.getX()+b.getDimension().width > camera.getX() && b.getX() < camera.getX()+camera.getWidth()+b.getDimension().width) {
+                if (b != null && isWithinCamera(b)) {
                     visBricks.add(b);
                 }
             }
         }
 
         return visBricks;
-    }
+    }*/
 
     public void addBrick(Brick brick) {
         this.bricks.add(brick);
@@ -118,7 +147,7 @@ public class Map {
     }
 
     private void drawPrizes(Graphics2D g2) {
-        for(Prize prize : revealedPrizes){
+        for(Prize prize : revealedPrizes) {
             if(prize instanceof Coin){
                 ((Coin) prize).draw(g2);
             }
@@ -133,8 +162,9 @@ public class Map {
     }
 
     private void drawBricks(Graphics2D g2) {
-        for (Brick brick : getAllVisibleBricks(true)) {
-            brick.draw(g2);
+        for (Brick brick : getAllBricks()) {
+            if (brick != null && isWithinCamera(brick))
+                brick.draw(g2);
         }
 
         /*for(Brick brick : bricks){
@@ -149,7 +179,7 @@ public class Map {
 
     private void drawEnemies(Graphics2D g2) {
         for(Enemy enemy : enemies){
-            if(enemy != null)
+            if(enemy != null && isWithinCamera(enemy))
                 enemy.draw(g2);
         }
     }
@@ -160,8 +190,10 @@ public class Map {
 
     public void updateLocations() {
         mario.updateLocation();
-        for(Enemy enemy : enemies){
-            enemy.updateLocation();
+        
+        for (Enemy enemy : enemies) {
+            if (isWithinCamera(enemy))
+                enemy.updateLocation();
         }
 
         for(Iterator<Prize> prizeIterator = revealedPrizes.iterator(); prizeIterator.hasNext();){
@@ -172,19 +204,22 @@ public class Map {
                     prizeIterator.remove();
                 }
             }
-            else if(prize instanceof BoostItem){
+            else if (prize instanceof BoostItem){
                 ((BoostItem) prize).updateLocation();
             }
         }
 
         for (Fireball fireball: fireballs) {
             fireball.updateLocation();
+            if (!isWithinCamera(fireball)) {
+                removeFireball(fireball);
+            }
         }
 
         for(Iterator<Brick> brickIterator = revealedBricks.iterator(); brickIterator.hasNext();){
             OrdinaryBrick brick = (OrdinaryBrick)brickIterator.next();
             brick.animate();
-            if(brick.getFrames() < 0){
+            if (brick.getFrames() < 0) {
                 bricks.remove(brick);
                 brickIterator.remove();
             }
@@ -193,7 +228,7 @@ public class Map {
         endPoint.updateLocation();
     }
 
-    public double getBottomBorder() {
+    public double getFloorY() {
         return bottomBorder;
     }
 

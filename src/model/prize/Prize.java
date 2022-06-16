@@ -1,7 +1,6 @@
 package model.prize;
 
 import manager.GameEngine;
-import manager.MapManager;
 import model.hero.Mario;
 
 import java.awt.*;

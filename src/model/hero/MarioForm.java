@@ -23,6 +23,18 @@ public class MarioForm {
         fireballStyle = imageLoader.getSubImage(fireball, 3, 4, 24, 24);
     }
 
+    public int getCurrentFormIndex() {
+        if (!isSuper) {
+            return SMALL;
+        }
+        else if (!isFire) {
+            return SUPER;
+        }
+        else {
+            return FIRE;
+        }
+    }
+
     public BufferedImage getCurrentStyle(boolean toRight, boolean movingInX, boolean movingInY){
 
         BufferedImage style;

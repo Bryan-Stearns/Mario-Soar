@@ -1,6 +1,5 @@
 package manager;
 
-import model.Map;
 import model.hero.Mario;
 import view.ImageLoader;
 import view.StartScreenSelection;
@@ -8,10 +7,13 @@ import view.UIManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.ListIterator;
 
 public class GameEngine implements Runnable {
 
-    private final static int WIDTH = 1268, HEIGHT = 708;
+    private final static int WIDTH = 1268, HEIGHT = 708,
+                             FPS = 60;
 
     private MapManager mapManager;
     private UIManager uiManager;
@@ -31,6 +33,9 @@ public class GameEngine implements Runnable {
 
     private JTextField //jtext_humanInput,
                         jtext_agentOutput;
+
+    private ArrayList<EventTimer> eventTimers = null;        // Can be used to add delayed custom events
+    private long gameTickTime = 0;
 
     private GameEngine(String agentPath) {
         if (agentPath != null) {
@@ -65,14 +70,13 @@ public class GameEngine implements Runnable {
         jtext_agentOutput.setBounds(8, HEIGHT-30, WIDTH/2, 30);
         frame.add(jtext_agentOutput, BorderLayout.SOUTH);
         
+        setAgentTextBoxVisible(soarControlled);
+
         frame.pack();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setResizable(false);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-
-
-        setAgentTextBoxVisible(soarControlled);
 
         // Inserted code to make game start on first map
         if (soarControlled) {
@@ -80,6 +84,8 @@ public class GameEngine implements Runnable {
             selectMapViaIndex(0);
             soarLink = new MarioSoarLink(soarAgentPath, this);
         }
+
+        eventTimers = new ArrayList<EventTimer>();
 
         start();
     }
@@ -98,11 +104,16 @@ public class GameEngine implements Runnable {
             setAgentTextBoxVisible(false);
         }
         resetCamera();
+        soundManager.stopAllMusic();
         setGameStatus(GameStatus.START_SCREEN);
     }
 
     public void resetCamera(){
-        camera = new Camera(WIDTH, HEIGHT);
+        //camera = new Camera(WIDTH, HEIGHT);
+        camera.setLocation(0, 0);
+    }
+
+    public void restartBackgroundMusic() {
         soundManager.restartBackground();
     }
 
@@ -152,21 +163,36 @@ public class GameEngine implements Runnable {
             setGameStatus(GameStatus.START_SCREEN);
     }
 
+    public void setTimer(EventTimer eventTimer) {
+        this.eventTimers.add(eventTimer);
+    }
+
+    public long getCurrentTickTime() { return gameTickTime; }
+
+    public long millisecToTicks(long milli) { return (long) ((long) FPS * (milli / 1000.0)); }
+
+    public long getFutureTickFromMillisec(long milli) { return gameTickTime+millisecToTicks(milli); }
+
     @Override
     public void run() {
         long lastTime = System.nanoTime();
-        double amountOfTicks = 60.0;
-        double ns = 1000000000 / amountOfTicks;
+        double ns = 1000000000 / (double) FPS;
         double delta = 0;
         long timer = System.currentTimeMillis();
+        gameTickTime = 0;
 
         while (isRunning && !thread.isInterrupted()) {
 
             long now = System.nanoTime();
             delta += (now - lastTime) / ns;
-            if (delta > 1)  // Disable catch-up
-                delta = 1;
+            //if (delta > 1)  // Disable catch-up
+            //    delta = 1;
             lastTime = now;
+
+            // Handle timers first
+            updateEventTimers(now);
+
+            // Update the game to catch up to the present
             while (delta >= 1) {
                 if (gameStatus == GameStatus.RUNNING) {
                     gameLoop();
@@ -175,7 +201,16 @@ public class GameEngine implements Runnable {
                         soarLink.runAgent(1);
                     }
                 }
+                else if (gameStatus == GameStatus.MARIO_DEAD) {
+                    mapManager.getMario().updateLocation();
+                    /*if (!soundManager.isClipPlaying()) {
+                        if (isGameOver()) {
+                            setGameStatus(GameStatus.GAME_OVER);
+                        }
+                    }*/
+                }
                 delta--;
+                gameTickTime++;
             }
             render();
 
@@ -190,6 +225,22 @@ public class GameEngine implements Runnable {
         }
     }
 
+    private void updateEventTimers(long now) {
+        ArrayList<EventTimer> timersToRing = new ArrayList<EventTimer>();
+        ListIterator<EventTimer> timerIter = eventTimers.listIterator();
+        while (timerIter.hasNext()) {
+            EventTimer et = timerIter.next();
+            if (gameTickTime >= et.getEndTickTime()) {
+                timersToRing.add(et);
+                timerIter.remove();
+            }
+        }
+        //eventTimers.removeIf(x -> x.hasRung());
+        for (EventTimer et : timersToRing) {
+            et.ring(this);
+        }
+    }
+
     private void render() {
         uiManager.repaint();
     }
@@ -197,18 +248,27 @@ public class GameEngine implements Runnable {
     private void gameLoop() {
         updateLocations();
         checkCollisions();
-        updateCamera();
+        if (gameStatus != GameStatus.MARIO_DEAD)
+            updateCamera();
 
-        if (isGameOver()) {
+        /*if (isGameOver()) {
             setGameStatus(GameStatus.GAME_OVER);
-        }
+        }*/
 
         int missionPassed = passMission();
-        if(missionPassed > -1){
+        if (missionPassed > -1) {
             mapManager.acquirePoints(missionPassed);
-            //setGameStatus(GameStatus.MISSION_PASSED);
-        } else if(mapManager.endLevel())
+        } 
+        else if (mapManager.endLevel()) {
             setGameStatus(GameStatus.MISSION_PASSED);
+            setTimer(new EventTimer(getFutureTickFromMillisec(4000), new RingEventInterface() {
+                @Override
+                public void ring(GameEngine engine) {
+                    // Restart game
+                    engine.reset();
+                }
+            }));
+        }
     }
 
     private void updateCamera() {
@@ -216,8 +276,12 @@ public class GameEngine implements Runnable {
         double marioVelocityX = mario.getVelX();
         double shiftAmount = 0;
 
-        if (marioVelocityX > 0 && mario.getX() - 600 > camera.getX()) {
+        if (marioVelocityX > 0 && mario.getX() > camera.getX()+600
+         || marioVelocityX < 0 && mario.getX() < camera.getX()+400) {
             shiftAmount = marioVelocityX;
+
+            if (camera.getX()+shiftAmount < 0)
+                shiftAmount = -camera.getX();
         }
 
         camera.moveCam(shiftAmount, 0);
@@ -257,20 +321,31 @@ public class GameEngine implements Runnable {
                 changeSelectedMap(false);
             }
         } else if (gameStatus == GameStatus.RUNNING) {
+            
             Mario mario = mapManager.getMario();
             if (input == ButtonAction.JUMP) {
                 mario.jump(this);
+            } else if (input == ButtonAction.JUMP_RELEASED) {
+                mario.setKeypress_jump(false);
+                mario.resetGravity();
             } else if (input == ButtonAction.M_RIGHT) {
-                mario.move(true, camera);
+                mario.setKeypress_moveRight(true);
+                //mario.move(true, camera);
             } else if (input == ButtonAction.M_LEFT) {
-                mario.move(false, camera);
-            } else if (input == ButtonAction.ACTION_COMPLETED) {
-                mario.setVelX(0);
+                mario.setKeypress_moveLeft(true);
+                //mario.move(false, camera);
+            } else if (input == ButtonAction.RIGHT_RELEASED) {
+                mario.setKeypress_moveRight(false);
+                //mario.setVelX(0);
+            } else if (input == ButtonAction.LEFT_RELEASED) {
+                mario.setKeypress_moveLeft(false);
+                //mario.setVelX(0);
             } else if (input == ButtonAction.FIRE) {
                 mapManager.fire(this);
             } else if (input == ButtonAction.PAUSE_RESUME) {
                 pauseGame();
             }
+
         } else if (gameStatus == GameStatus.PAUSED) {
             if (input == ButtonAction.PAUSE_RESUME) {
                 pauseGame();
@@ -309,18 +384,26 @@ public class GameEngine implements Runnable {
         }
     }
 
-    public void shakeCamera(){
+    public void shakeCamera() {
         camera.shakeCamera();
     }
 
+    public boolean isCameraShaking() {
+        return camera.isShaking();
+    }
+
     private boolean isGameOver() {
-        if(gameStatus == GameStatus.RUNNING)
+        if(gameStatus == GameStatus.RUNNING || gameStatus == GameStatus.MARIO_DEAD)
             return mapManager.isGameOver();
         return false;
     }
 
     public ImageLoader getImageLoader() {
         return imageLoader;
+    }
+
+    public SoundManager getSoundManager() {
+        return soundManager;
     }
 
     public GameStatus getGameStatus() {
@@ -359,7 +442,48 @@ public class GameEngine implements Runnable {
         return new Point((int)camera.getX(), (int)camera.getY());
     }
 
-    private int passMission(){
+    public void killMario() {
+        if (mapManager.isMarioDead())
+            return;
+        
+        playMarioDies();
+        setGameStatus(GameStatus.MARIO_DEAD);
+        mapManager.setMarioDead(true);
+
+        setTimer(new EventTimer(getFutureTickFromMillisec(3000), new RingEventInterface() {
+            @Override
+            public void ring(GameEngine engine) {
+                // Restart or game over
+                if (isGameOver()) {
+                    engine.triggerGameOver();
+                }
+                else {
+                    engine.setGameStatus(GameStatus.RUNNING);
+                    engine.getMapManager().resetCurrentMap(engine);
+                }
+                
+            }
+        }));
+
+        Mario mario = mapManager.getMario();
+        mario.setJumping(true);
+        mario.setVelYAbs(10);
+        mario.setVelX(0);
+    }
+
+    public void triggerGameOver() {
+        setGameStatus(GameStatus.GAME_OVER);
+        playGameOver();
+        setTimer(new EventTimer(getFutureTickFromMillisec(4000), new RingEventInterface() {
+            @Override
+            public void ring(GameEngine engine) {
+                // Return to main menu after game over music/screen
+                engine.reset();
+            }
+        }));
+    }
+
+    private int passMission() {
         return mapManager.passMission();
     }
 
@@ -377,6 +501,10 @@ public class GameEngine implements Runnable {
 
     public void playMarioDies() {
         soundManager.playMarioDies();
+    }
+
+    public void playGameOver() {
+        soundManager.playGameOver();
     }
 
     public void playJump() {

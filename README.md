@@ -10,6 +10,24 @@ You can visit [wikipedia page](https://en.wikipedia.org/wiki/Super_Mario_Bros.) 
 ## Built With
 * [Java](https://www.java.com/)
 
+## Game code modifications by Bryan Stearns
+
+* Changed character collision mechanics to be closer to the original game
+* Made it so enemies that kill Mario are not immediately killed and removed
+* Added small jump to Mario when he squishes an enemy
+* Allowed Mario+camera to move back to the left
+* Fixed collision bugs with enemies and bricks
+* Improved efficiency by only drawing bricks and enemies that are within the camera view
+* Added Mario jump and fall animation when Mario dies
+* Made automatic sequence of Mario-dies -> YouDied screen -> Main menu
+* Adjusted Mario jump height
+* Made game restart after winning
+* Removed fireballs when they leave the screen
+* Fixed so Mario can keep moving left/right if jumping clears an obstacle that had been previously hit while moving left/right
+* Added ability to hold down Jump to jump higher
+* Fixed exception when Mario touches a Coin from a ? block.
+* Added invulnerability time while camera is shaking (Mario is shrinking from damage)
+
 ## In-game Screens
 
 ### Start Screen
