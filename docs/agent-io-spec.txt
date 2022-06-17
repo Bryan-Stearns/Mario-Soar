@@ -13,8 +13,14 @@ input-link
             ^is-fire STRING     # << true false >>
             ^height INT
             ^width INT
-    ^touching
+    ^touching-top
         ^...                    # Same sub structure as for any other objects
+    ^touching-bottom
+        ^...
+    ^touching-right
+        ^...
+    ^touching-left
+        ^...
     ^enemies
         ^enemy
             ^type STRING        # << goomba koopatroopa >>
@@ -26,7 +32,7 @@ input-link
             ^y-speed FLOAT
     ^bricks
         ^brick
-            ^type STRING        # << ordinary ground surprise >>
+            ^type STRING        # << ordinary ground surprise pipe >>
             ^breakable STRING   # << true false >>
             ^x-absolute INT
             ^y-absolute INT
@@ -41,20 +47,6 @@ input-link
             ^y-relative INT
             ^x-speed FLOAT
             ^y-speed FLOAT
-    ^coins
-        ^coin
-            ^x-absolute INT
-            ^y-absolute INT
-            ^x-relative INT
-            ^y-relative INT
-    ^pipes
-        ^pipe
-            ^x-absolute INT     # Coordinates refer to the top left
-            ^y-absolute INT
-            ^x-relative INT
-            ^y-relative INT
-            ^height INT
-            ^width INT
     ^special
         ^end-flag
             ^x-absolute INT     # Coordinates refer to the top left

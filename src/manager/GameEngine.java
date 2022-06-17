@@ -325,15 +325,18 @@ public class GameEngine implements Runnable {
             Mario mario = mapManager.getMario();
             if (input == ButtonAction.JUMP) {
                 mario.jump(this);
+                mapManager.clearColliderLists();
             } else if (input == ButtonAction.JUMP_RELEASED) {
                 mario.setKeypress_jump(false);
                 mario.resetGravity();
             } else if (input == ButtonAction.M_RIGHT) {
                 mario.setKeypress_moveRight(true);
                 //mario.move(true, camera);
+                mapManager.clearColliderLists();
             } else if (input == ButtonAction.M_LEFT) {
                 mario.setKeypress_moveLeft(true);
                 //mario.move(false, camera);
+                mapManager.clearColliderLists();
             } else if (input == ButtonAction.RIGHT_RELEASED) {
                 mario.setKeypress_moveRight(false);
                 //mario.setVelX(0);
@@ -436,6 +439,10 @@ public class GameEngine implements Runnable {
 
     public void drawMap(Graphics2D g2) {
         mapManager.drawMap(g2);
+        // DEBUG
+        /*if (soarControlled) {
+            mapManager.drawCollidersList(g2, 16,16);
+        }*/
     }
 
     public Point getCameraLocation() {
@@ -467,6 +474,7 @@ public class GameEngine implements Runnable {
 
         Mario mario = mapManager.getMario();
         mario.setJumping(true);
+        mario.resetGravity();
         mario.setVelYAbs(10);
         mario.setVelX(0);
     }

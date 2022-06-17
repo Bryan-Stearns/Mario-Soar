@@ -34,7 +34,7 @@ public class InputManager implements KeyListener, MouseListener{
             }
         }
         else if (status == GameStatus.RUNNING) {
-            if (!engine.isSoarControlled()) {
+            //if (!engine.isSoarControlled()) {
                 if (keyCode == KeyEvent.VK_UP) {
                     currentAction = ButtonAction.JUMP;
                 }
@@ -47,7 +47,7 @@ public class InputManager implements KeyListener, MouseListener{
                 else if (keyCode == KeyEvent.VK_SPACE){
                     currentAction = ButtonAction.FIRE;
                 }
-            }
+            //}
             
             if (keyCode == KeyEvent.VK_ESCAPE) {
                 currentAction = ButtonAction.PAUSE_RESUME;

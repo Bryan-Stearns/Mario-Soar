@@ -14,14 +14,66 @@ import view.ImageLoader;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 
 public class MapManager {
 
     private Map map;
     private Camera camera;
+    private ArrayList<GameObject> marioCollidersTop,
+                                marioCollidersBottom,
+                                marioCollidersLeft,
+                                marioCollidersRight;
 
     public MapManager(Camera camera) {
         this.camera = camera;
+        marioCollidersTop = new ArrayList<GameObject>();
+        marioCollidersBottom = new ArrayList<GameObject>();
+        marioCollidersLeft = new ArrayList<GameObject>();
+        marioCollidersRight = new ArrayList<GameObject>();
+    }
+
+    public void clearColliderLists() {
+        marioCollidersTop.clear();
+        marioCollidersBottom.clear();
+        marioCollidersLeft.clear();
+        marioCollidersRight.clear();
+    }
+
+    /*public void clearColliderTop() {
+        marioCollidersTop.clear();
+    }
+
+    public void clearColliderBottom() {
+        marioCollidersBottom.clear();
+    }
+
+    public void clearColliderLeft() {
+        marioCollidersLeft.clear();
+    }
+
+    public void clearColliderRight() {
+        marioCollidersRight.clear();
+    }*/
+
+    public void addTopCollider(GameObject obj) {
+        if (!marioCollidersTop.contains(obj))
+            marioCollidersTop.add(obj);
+    }
+
+    public void addBottomCollider(GameObject obj) {
+        if (!marioCollidersBottom.contains(obj))
+            marioCollidersBottom.add(obj);
+    }
+
+    public void addRightCollider(GameObject obj) {
+        if (!marioCollidersRight.contains(obj))
+            marioCollidersRight.add(obj);
+    }
+
+    public void addLeftCollider(GameObject obj) {
+        if (!marioCollidersLeft.contains(obj))
+            marioCollidersLeft.add(obj);
     }
 
     public void updateLocations() {
@@ -38,11 +90,11 @@ public class MapManager {
         // Clear old input
         soarLink.cleanInputWMEs();
 
-        // Update Mario input
+        // Update new input
         soarLink.addInput_mario(map.getMario(), map.getRemainingTime());
-
-        // Update bricks input
-        //soarLink.addInput_bricks(map.getAllVisibleBricks(true));
+        soarLink.addInput_touching(marioCollidersTop, marioCollidersBottom, marioCollidersLeft, marioCollidersRight);
+        soarLink.addInput_enemies(map.getEnemies());
+        soarLink.addInput_bricks(map.getAllBricks());
 
         soarLink.getAgent().Commit();
     }
@@ -130,6 +182,8 @@ public class MapManager {
             return;
         }
 
+        //clearColliderLists();
+
         //checkMarioBottomCollisions(engine);
         //checkMarioTopCollisions(engine);
         //checkMarioHorizontalCollision(engine);
@@ -167,17 +221,20 @@ public class MapManager {
             if (mario.getRightBounds().intersects(brick.getLeftBounds())) {
                 mario.setVelX(0);
                 mario.setX(brick.getX() - mario.getDimension().width);
+                addRightCollider(brick);
             }
             // Check hitting from the right
             if (mario.getLeftBounds().intersects(brick.getRightBounds())) {
                 mario.setVelX(0);
                 mario.setX(brick.getX() + brick.getDimension().width);
+                addLeftCollider(brick);
             }
             // Check hitting from above
             else if (mario.isFalling() && mario.getBottomBounds().intersects(brick.getTopBounds())) {
                 mario.setY(brick.getY() - mario.getDimension().height + 1);
                 mario.setFalling(false);
                 mario.setVelYAbs(0);
+                addBottomCollider(brick);
             }
             // Check hitting from below
             else if (mario.isJumping() && mario.getTopBounds().intersects(brick.getBottomBounds())) {
@@ -190,6 +247,7 @@ public class MapManager {
                     if (prize instanceof Coin)
                         prize.onTouch(mario, engine);
                 }
+                addTopCollider(brick);
             }
             /*Rectangle brickBounds = brick.getBounds();
             if (marioBounds.intersects(brickBounds)) {
@@ -229,15 +287,23 @@ public class MapManager {
             
             Rectangle enemyBounds = enemy.getBounds();
             if (marioBounds.intersects(enemyBounds)) {
-                if (mario.isFalling() && mario.getVelYAbs() > 0) {
+                if (mario.isFalling()) { // && mario.getVelYAbs() > 0) {
                     // Mario beats the enemy
                     stompedEnemy = true;
                     toBeRemoved.add(enemy);
                     mario.acquirePoints(100);
+                    addBottomCollider(enemy);
                 }
                 else if (mario.getY()+marioBounds.height > enemy.getY()+8) {
                     // The enemy beats Mario
                     mario.onTouchEnemy(engine);
+
+                    if (enemy.getY()+enemyBounds.height < mario.getY())
+                        addTopCollider(enemy);
+                    else if (enemy.getX()+enemyBounds.width < mario.getX())
+                        addLeftCollider(enemy);
+                    else
+                        addRightCollider(enemy);
                 }
             }
         }
@@ -525,5 +591,53 @@ public class MapManager {
 
     public int getRemainingTime() {
         return (int)map.getRemainingTime();
+    }
+
+    public void drawCollidersList(Graphics2D g2, int x, int y) {
+        g2.setColor(Color.WHITE);
+        int yy = y;
+        int xShift = (int)camera.getX();
+
+        try {
+            g2.drawString("TOP:", x+xShift, yy);
+            yy += 20;
+            for (GameObject obj : marioCollidersTop) {
+                g2.drawString(obj.toString(), x+xShift,yy);
+                yy += 16;
+            }
+            xShift += 256;
+            yy = y;
+
+            g2.drawString("BOTTOM:", x+xShift, yy);
+            yy += 20;
+            for (GameObject obj : marioCollidersBottom) {
+                g2.drawString(obj.toString(), x+xShift,yy);
+                yy += 16;
+            }
+            xShift += 256;
+            yy = y;
+
+            g2.drawString("RIGHT:", x+xShift, yy);
+            yy += 20;
+            for (GameObject obj : marioCollidersRight) {
+                g2.drawString(obj.toString(), x+xShift,yy);
+                yy += 16;
+            }
+            xShift += 256;
+            yy = y;
+
+            g2.drawString("LEFT:", x+xShift, yy);
+            yy += 20;
+            for (GameObject obj : marioCollidersLeft) {
+                g2.drawString(obj.toString(), x+xShift,yy);
+                yy += 16;
+            }
+            yy = y;
+
+        }
+        catch (ConcurrentModificationException e) {
+            e.printStackTrace();
+        }
+        
     }
 }
