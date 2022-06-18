@@ -1,6 +1,5 @@
 package model.hero;
 
-import manager.Camera;
 import manager.GameEngine;
 import manager.GameStatus;
 import view.Animation;
@@ -23,8 +22,9 @@ public class Mario extends GameObject{
                     keyPressed_moveRight = false,
                     keyPressed_jump = false;
     private double jumpStartY;
+    private boolean invisible = false;
 
-    public Mario(double x, double y){
+    public Mario(double x, double y) {
         super(x, y, null);
         setDimension(48,48);
 
@@ -44,7 +44,10 @@ public class Mario extends GameObject{
     }
 
     @Override
-    public void draw(Graphics g){
+    public void draw(Graphics g) {
+        if (invisible)
+            return;
+
         boolean movingInX = (getVelX() != 0);
         boolean movingInY = (getVelYAbs() != 0);
 
@@ -154,18 +157,22 @@ public class Mario extends GameObject{
         return (yOther - getY());
     }
 
-    public boolean onTouchEnemy(GameEngine engine){
+    public boolean onTouchEnemy(GameEngine engine) {
 
         if (engine.getGameStatus() == GameStatus.RUNNING && !engine.isCameraShaking()) {
-            if(!marioForm.isSuper() && !marioForm.isFire()) {
+            if (!marioForm.isSuper() && !marioForm.isFire()) {
+                // Lose a life and reset
                 remainingLives--;
                 engine.killMario();
                 return true;
             }
-            else{
+            else {
+                // Shrink
+                int startHeight = getBounds().height;
                 engine.shakeCamera();
                 marioForm = marioForm.onTouchEnemy(engine.getImageLoader());
                 setDimension(48, 48);
+                setY(getY()+(startHeight-48));
                 return false;
             }
         }
@@ -216,11 +223,16 @@ public class Mario extends GameObject{
         return toRight;
     }
 
+    public void setIsVisible(boolean visible) {
+        this.invisible = !visible;
+    }
+
     public void resetLocation() {
         setVelX(0);
         setVelYAbs(0);
         setX(50);
         setJumping(false);
         setFalling(true);
+        setIsVisible(true);
     }
 }

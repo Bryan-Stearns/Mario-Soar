@@ -27,6 +27,14 @@ You can visit [wikipedia page](https://en.wikipedia.org/wiki/Super_Mario_Bros.) 
 * Added ability to hold down Jump to jump higher
 * Fixed exception when Mario touches a Coin from a ? block.
 * Added invulnerability time while camera is shaking (Mario is shrinking from damage)
+* Fixed bug where Koopa can cancel out its reverse-VelX when colliding with two stacked bricks at once
+* Fixed Mario walk animation speed
+* Added walking animation to Goombas
+* Made Mario disappear into castle at level end
+* Turned off collision detection while Mario shrinks
+* Made Mario y value adjust when he shrinks
+* Fixed bug where camera.shaking would never turn false once made true
+* Made enemies reverse x-direction when hitting Mario and making him shrink
 
 ## In-game Screens
 

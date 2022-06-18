@@ -105,6 +105,7 @@ public class GameEngine implements Runnable {
         }
         resetCamera();
         soundManager.stopAllMusic();
+        eventTimers.clear();
         setGameStatus(GameStatus.START_SCREEN);
     }
 
@@ -203,11 +204,6 @@ public class GameEngine implements Runnable {
                 }
                 else if (gameStatus == GameStatus.MARIO_DEAD) {
                     mapManager.getMario().updateLocation();
-                    /*if (!soundManager.isClipPlaying()) {
-                        if (isGameOver()) {
-                            setGameStatus(GameStatus.GAME_OVER);
-                        }
-                    }*/
                 }
                 delta--;
                 gameTickTime++;
@@ -261,6 +257,8 @@ public class GameEngine implements Runnable {
         } 
         else if (mapManager.endLevel()) {
             setGameStatus(GameStatus.MISSION_PASSED);
+            mapManager.getMario().setIsVisible(false);
+            setEnemiesAnimating(false);
             setTimer(new EventTimer(getFutureTickFromMillisec(4000), new RingEventInterface() {
                 @Override
                 public void ring(GameEngine engine) {
@@ -381,9 +379,11 @@ public class GameEngine implements Runnable {
         if (gameStatus == GameStatus.RUNNING) {
             setGameStatus(GameStatus.PAUSED);
             soundManager.pauseBackground();
+            setEnemiesAnimating(false);
         } else if (gameStatus == GameStatus.PAUSED) {
             setGameStatus(GameStatus.RUNNING);
             soundManager.resumeBackground();
+            setEnemiesAnimating(true);
         }
     }
 
@@ -439,10 +439,24 @@ public class GameEngine implements Runnable {
 
     public void drawMap(Graphics2D g2) {
         mapManager.drawMap(g2);
+
         // DEBUG
-        /*if (soarControlled) {
+        /*ArrayList<Enemy> enemies = mapManager.getMap().getEnemies();
+        ArrayList<Brick> bricks = mapManager.getMap().getAllBricks();
+        for (Enemy enemy : enemies) {
+            for (Brick brick : bricks) {
+                Rectangle enemyBounds = enemy.getBounds();
+                enemyBounds = new Rectangle(enemyBounds.x+2,enemyBounds.y+2, enemyBounds.width-4, enemyBounds.width-4);
+                Rectangle brickBounds = brick.getBounds();
+
+                if (enemyBounds.intersects(brickBounds)) {
+                    g2.drawString("BOUNCE", (int)enemy.getX(), (int)enemy.getY()-16);
+                }
+            }
+        }
+        //if (soarControlled) {
             mapManager.drawCollidersList(g2, 16,16);
-        }*/
+        //}*/
     }
 
     public Point getCameraLocation() {
@@ -456,6 +470,7 @@ public class GameEngine implements Runnable {
         playMarioDies();
         setGameStatus(GameStatus.MARIO_DEAD);
         mapManager.setMarioDead(true);
+        setEnemiesAnimating(false);
 
         setTimer(new EventTimer(getFutureTickFromMillisec(3000), new RingEventInterface() {
             @Override
@@ -563,5 +578,9 @@ public class GameEngine implements Runnable {
 
     public int getRemainingTime() {
         return mapManager.getRemainingTime();
+    }
+
+    public void setEnemiesAnimating(boolean animate) {
+        mapManager.setEnemiesAnimating(animate);
     }
 }

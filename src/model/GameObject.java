@@ -44,8 +44,8 @@ public abstract class GameObject {
         }
 
         //for debugging: show collision boxes
-        Graphics2D g2 = (Graphics2D)g;
-        g2.setColor(Color.WHITE);
+        //Graphics2D g2 = (Graphics2D)g;
+        //g2.setColor(Color.WHITE);
 
         /*g2.draw(getTopBounds());
         g2.draw(getBottomBounds());
@@ -144,8 +144,8 @@ public abstract class GameObject {
     }
 
     public Rectangle getTopBounds(){
-        //return new Rectangle((int)x+dimension.width/6, (int)y, 2*dimension.width/3, dimension.height/4);
-        return new Rectangle((int)x+dimension.width/8, (int)y, 3*dimension.width/4, dimension.height/4);
+        //return new Rectangle((int)x+dimension.width/6, (int)y, 2*dimension.width/3, dimension.height/2);
+        return new Rectangle((int)x+dimension.width/8, (int)y, 3*dimension.width/4, dimension.height/2);
     }
 
     public Rectangle getBottomBounds(){

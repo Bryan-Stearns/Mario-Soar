@@ -178,8 +178,8 @@ public class Map {
     }
 
     private void drawEnemies(Graphics2D g2) {
-        for(Enemy enemy : enemies){
-            if(enemy != null && isWithinCamera(enemy))
+        for (Enemy enemy : enemies) {
+            if (enemy != null && enemy.isRevealed())
                 enemy.draw(g2);
         }
     }
@@ -192,8 +192,14 @@ public class Map {
         mario.updateLocation();
         
         for (Enemy enemy : enemies) {
-            if (isWithinCamera(enemy))
+            if (!enemy.isRevealed()) {
+                if (isWithinCamera(enemy)) {
+                    enemy.reveal();
+                }
+            }
+            else {
                 enemy.updateLocation();
+            }
         }
 
         for(Iterator<Prize> prizeIterator = revealedPrizes.iterator(); prizeIterator.hasNext();){
@@ -209,10 +215,11 @@ public class Map {
             }
         }
 
-        for (Fireball fireball: fireballs) {
+        for (Iterator<Fireball> fireballIterator=fireballs.iterator(); fireballIterator.hasNext(); ) {
+            Fireball fireball = (Fireball)fireballIterator.next();
             fireball.updateLocation();
             if (!isWithinCamera(fireball)) {
-                removeFireball(fireball);
+                fireballIterator.remove();
             }
         }
 

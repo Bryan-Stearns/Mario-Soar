@@ -60,12 +60,12 @@ public class Camera {
             x = x + 4 * direction;
             frameNumber--;
         }
-        else{
+        else {
             x = x + xAmount;
             y = y + yAmount;
         }
 
-        if(frameNumber < 0)
+        if (frameNumber <= 0)
             shaking = false;
     }
 }

@@ -102,6 +102,7 @@ public class MapManager {
     public void resetCurrentMap(GameEngine engine) {
         Mario mario = getMario();
         mario.resetLocation();
+        setEnemiesAnimating(true);
         createMap(engine.getImageLoader(), map.getPath());
         map.setMario(mario);
         engine.resetCamera();
@@ -195,6 +196,9 @@ public class MapManager {
     }
 
     private void checkMarioCollisions(GameEngine engine) {
+        if (engine.isCameraShaking())
+            return;
+
         Mario mario = getMario();
         ArrayList<Brick> bricks = map.getAllBricks();
         ArrayList<Enemy> enemies = map.getEnemies();
@@ -297,6 +301,7 @@ public class MapManager {
                 else if (mario.getY()+marioBounds.height > enemy.getY()+8) {
                     // The enemy beats Mario
                     mario.onTouchEnemy(engine);
+                    enemy.setVelX(-enemy.getVelX());
 
                     if (enemy.getY()+enemyBounds.height < mario.getY())
                         addTopCollider(enemy);
@@ -307,7 +312,9 @@ public class MapManager {
                 }
             }
         }
+
         removeObjects(toBeRemoved);
+
         if (stompedEnemy) {
             engine.playStomp();
             mario.setVelYAbs(3);
@@ -420,13 +427,15 @@ public class MapManager {
 
         for (Enemy enemy : enemies) {
             boolean standsOnBrick = false;
+            boolean reverseX = false;
 
             for (Brick brick : bricks) {
-                Rectangle enemyBottomBounds = enemy.getBottomBounds();
+                //Rectangle enemyBottomBounds = enemy.getBottomBounds();
                 Rectangle brickTopBounds = brick.getTopBounds();
 
-                Rectangle enemyBounds = enemy.getBounds();
-                enemyBounds = new Rectangle(enemyBounds.x+2,enemyBounds.y+2, enemyBounds.width-4, enemyBounds.width-4);
+                Rectangle enemyTopBounds = enemy.getTopBounds(); // enemy.getBounds();
+                Rectangle enemyBottomBounds = enemy.getBottomBounds();
+                //enemyBounds = new Rectangle(enemyBounds.x+2,enemyBounds.y+2, enemyBounds.width-4, enemyBounds.height-4);
                 Rectangle brickBounds = brick.getBounds();
 
                 /*Rectangle enemyBounds = enemy.getLeftBounds();
@@ -437,17 +446,20 @@ public class MapManager {
                     brickBounds = brick.getLeftBounds();
                 }*/
 
-                if (enemyBounds.intersects(brickBounds)) {
-                    enemy.setVelX(-enemy.getVelX());
+                if (enemyTopBounds.intersects(brickBounds)) {
+                    reverseX = true;
                 }
 
-                if (enemyBottomBounds.intersects(brickTopBounds)){
+                if (enemyBottomBounds.intersects(brickTopBounds)) { // Add isFalling test?
                     enemy.setFalling(false);
                     enemy.setVelYAbs(0);
                     enemy.setY(brick.getY()-enemy.getDimension().height);
                     standsOnBrick = true;
                 }
             }
+
+            if (reverseX)
+                enemy.setVelX(-enemy.getVelX());
 
             if(enemy.getY() + enemy.getDimension().height > map.getFloorY()){
                 enemy.setFalling(false);
@@ -639,5 +651,11 @@ public class MapManager {
             e.printStackTrace();
         }
         
+    }
+
+    public void setEnemiesAnimating(boolean animate) {
+        for (Enemy enemy : map.getEnemies()) {
+            enemy.setAnimating(animate);
+        }
     }
 }

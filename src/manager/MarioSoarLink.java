@@ -2,7 +2,7 @@ package manager;
 
 import java.util.ArrayList;
 
-import javax.lang.model.util.ElementScanner14;
+//import javax.lang.model.util.ElementScanner14;
 
 import com.optum.ect.soar.SoarLinkAbstract;
 import com.optum.ect.soar.SoarMemObj;
@@ -13,17 +13,13 @@ import model.GameObject;
 import model.Map;
 import model.brick.Brick;
 import model.enemy.Enemy;
-import model.enemy.Goomba;
 import model.enemy.KoopaTroopa;
 import model.hero.Mario;
 import model.prize.BoostItem;
 import model.prize.FireFlower;
 import model.prize.OneUpMushroom;
-import model.prize.Prize;
-import model.prize.SuperMushroom;
 import sml.Agent;
 import sml.Identifier;
-import sml.SWIGTYPE_p_std__listT_sml__WMElement_p_t__iterator;
 import sml.WMElement;
 
 public class MarioSoarLink extends SoarLinkAbstract {

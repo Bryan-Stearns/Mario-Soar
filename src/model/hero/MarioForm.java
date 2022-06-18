@@ -46,7 +46,7 @@ public class MarioForm {
             style = animation.getLeftFrames()[0];
         }
         else if(movingInX){
-            style = animation.animate(5, toRight);
+            style = animation.animate(1, toRight); // speed was 5
         }
         else {
             if(toRight){
@@ -69,7 +69,7 @@ public class MarioForm {
     }
 
     public Fireball fire(boolean toRight, double x, double y) {
-        if(isFire){
+        if (isFire) {
             return new Fireball(x, y + 48, fireballStyle, toRight);
         }
         return null;
