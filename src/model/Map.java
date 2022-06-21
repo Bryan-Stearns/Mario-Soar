@@ -24,6 +24,7 @@ public class Map {
     private ArrayList<Enemy> enemies = new ArrayList<>();
     private ArrayList<Brick> groundBricks = new ArrayList<>();
     private ArrayList<Prize> revealedPrizes = new ArrayList<>();
+    private ArrayList<BoostItem> revealedBoosts = new ArrayList<>();
     private ArrayList<Brick> revealedBricks = new ArrayList<>();
     private ArrayList<Fireball> fireballs = new ArrayList<>();
     private EndFlag endPoint;
@@ -87,6 +88,10 @@ public class Map {
 
     public ArrayList<Prize> getRevealedPrizes() {
         return revealedPrizes;
+    }
+
+    public ArrayList<BoostItem> getRevealedBoosts() {
+        return revealedBoosts;
     }
 
     public ArrayList<Brick> getAllBricks() {
@@ -241,6 +246,8 @@ public class Map {
 
     public void addRevealedPrize(Prize prize) {
         revealedPrizes.add(prize);
+        if (prize instanceof BoostItem)
+            revealedBoosts.add((BoostItem) prize);
     }
 
     public void addFireball(Fireball fireball) {
@@ -269,6 +276,8 @@ public class Map {
 
     public void removePrize(Prize object) {
         revealedPrizes.remove(object);
+        if (object instanceof BoostItem)
+            revealedBoosts.remove(object);
     }
 
     public String getPath() {

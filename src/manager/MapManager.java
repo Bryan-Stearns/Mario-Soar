@@ -95,6 +95,8 @@ public class MapManager {
         soarLink.addInput_touching(marioCollidersTop, marioCollidersBottom, marioCollidersLeft, marioCollidersRight);
         soarLink.addInput_enemies(map.getEnemies());
         soarLink.addInput_bricks(map.getAllBricks());
+        soarLink.addInput_powerups(map.getRevealedBoosts());
+        soarLink.addInput_specials(map.getEndPoint());
 
         soarLink.getAgent().Commit();
     }

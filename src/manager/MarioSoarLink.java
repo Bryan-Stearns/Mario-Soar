@@ -18,6 +18,7 @@ import model.hero.Mario;
 import model.prize.BoostItem;
 import model.prize.FireFlower;
 import model.prize.OneUpMushroom;
+import model.prize.SuperMushroom;
 import sml.Agent;
 import sml.Identifier;
 import sml.WMElement;
@@ -35,6 +36,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
     public MarioSoarLink(String agentFilePath, GameEngine engine) {
         // Start the soar kernel+agent using port 12121 (the default)
         super(12121);
+        this.kernel.SetAutoCommit(false);
 
         // Remember the engine
         this.engine = engine;
@@ -131,11 +133,16 @@ public class MarioSoarLink extends SoarLinkAbstract {
         SoarMemObj retVal = new SoarMemObj("boost-obj", SoarValueType.OBJECT);
         Mario mario = engine.getMapManager().getMario();
 
-        String type = "super-mushroom";
-        if (boost instanceof FireFlower)
+        String type = null;
+        if (boost instanceof SuperMushroom)
+            type = "super-mushroom";
+        else if (boost instanceof FireFlower)
             type = "fire-flower";
         else if (boost instanceof OneUpMushroom)
             type = "one-up-mushroom";
+        
+        if (type == null)
+            return null;
 
         retVal.add_aug("type", type);
         retVal.add_aug("x-absolute", (int)boost.getX());
@@ -156,7 +163,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
         retVal.add_aug("y-absolute", (int)endFlag.getY());
         retVal.add_aug("x-relative", (int)mario.getRelativeX(endFlag.getX()));
         retVal.add_aug("y-relative", (int)mario.getRelativeY(endFlag.getY()));
-        retVal.add_aug("height", (int)endFlag.getBounds().getHeight());
+        //retVal.add_aug("height", (int)endFlag.getBounds().getHeight());
 
         return retVal;
     }
@@ -196,6 +203,8 @@ public class MarioSoarLink extends SoarLinkAbstract {
         addInput_touching_named("touching-bottom", marioCollidersBottom);
         addInput_touching_named("touching-left", marioCollidersLeft);
         addInput_touching_named("touching-right", marioCollidersRight);
+
+        kernel.CommitAll();
     }
 
     private void addInput_touching_named(String attrName, ArrayList<GameObject> colliderList) {
@@ -219,6 +228,9 @@ public class MarioSoarLink extends SoarLinkAbstract {
     }
 
     public void addInput_enemies(ArrayList<Enemy> enemyList) {
+        if (enemyList.size() == 0)
+            return;
+            
         // Reference mario for relative coordinates
         Map map = engine.getMapManager().getMap();
 
@@ -272,6 +284,9 @@ public class MarioSoarLink extends SoarLinkAbstract {
     }
 
     public void addInput_powerups(ArrayList<BoostItem> pupsList) {
+        if (pupsList.size() == 0)
+            return;
+
         // Reference mario for relative coordinates
         Map map = engine.getMapManager().getMap();
 
@@ -286,6 +301,11 @@ public class MarioSoarLink extends SoarLinkAbstract {
                 continue;
 
             SoarMemObj pupObj = makeBoostSoarObj(pup);
+
+            // The returned object will be null if the BoostItem is not one of the valid classes
+            if (pupObj == null)
+                continue;
+            
             pupsObj.add_aug("power-up", pupObj);
         }
 
@@ -293,7 +313,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
         addInputWMEs(ilTree);
     }
 
-    public void addInput_specials(ArrayList<GameObject> objList) {
+    public void addInput_specials(GameObject obj) { //ArrayList<GameObject> objList) {
         // Reference mario for relative coordinates
         Map map = engine.getMapManager().getMap();
 
@@ -303,16 +323,16 @@ public class MarioSoarLink extends SoarLinkAbstract {
         ilTree.add_aug("special", specialsObj);
 
         // Add each brick
-        for (GameObject obj : objList) {
+        //for (GameObject obj : objList) {
             if (!map.isWithinCamera(obj))
-                continue;
+                return; //continue;
 
             SoarMemObj endObj;
             if (obj instanceof EndFlag) {
                 endObj = makeEndFlagSoarObj((EndFlag)obj);
                 specialsObj.add_aug("end-flag", endObj);
             }
-        }
+        //}
 
         // Add this tree to the input link
         addInputWMEs(ilTree);
@@ -341,6 +361,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
                 String message = commandId.GetParameterValue("value");
                 output_messageGiven = true;
                 engine.setAgentMessage(message);
+                commandId.AddStatusComplete();
                 continue;
             }
             else if (commandAttr.equals("key-press")) {

@@ -1,6 +1,7 @@
 package manager;
 
 import model.hero.Mario;
+import sml.smlRunStepSize;
 import view.ImageLoader;
 import view.StartScreenSelection;
 import view.UIManager;
@@ -28,6 +29,7 @@ public class GameEngine implements Runnable {
     private JFrame frame;
 
     private boolean soarControlled = false;
+    private boolean useSoarDebugger = false;
     private String soarAgentPath = null;
     private MarioSoarLink soarLink;
 
@@ -37,10 +39,13 @@ public class GameEngine implements Runnable {
     private ArrayList<EventTimer> eventTimers = null;        // Can be used to add delayed custom events
     private long gameTickTime = 0;
 
-    private GameEngine(String agentPath) {
+    private GameEngine(String agentPath, boolean openDebugger) {
         if (agentPath != null) {
             this.soarAgentPath = agentPath;
             this.soarControlled = true;
+            if (openDebugger) {
+                this.useSoarDebugger = true;
+            }
         }
 
         init();
@@ -51,7 +56,7 @@ public class GameEngine implements Runnable {
         InputManager inputManager = new InputManager(this);
         gameStatus = GameStatus.START_SCREEN;
         camera = new Camera(WIDTH, HEIGHT);
-        uiManager = new UIManager(this, WIDTH, HEIGHT);
+        uiManager = new UIManager(this, WIDTH, HEIGHT, !useSoarDebugger);
         soundManager = new SoundManager();
         mapManager = new MapManager(camera);
 
@@ -80,9 +85,7 @@ public class GameEngine implements Runnable {
 
         // Inserted code to make game start on first map
         if (soarControlled) {
-            System.out.println("Running game controlled by Soar agent: "+soarAgentPath);
             selectMapViaIndex(0);
-            soarLink = new MarioSoarLink(soarAgentPath, this);
         }
 
         eventTimers = new ArrayList<EventTimer>();
@@ -102,6 +105,9 @@ public class GameEngine implements Runnable {
     private void reset() {
         if (isSoarControlled()) {
             setAgentTextBoxVisible(false);
+            if (useSoarDebugger) {
+                soarLink.getAgent().KillDebugger();
+            }
         }
         resetCamera();
         soundManager.stopAllMusic();
@@ -158,6 +164,13 @@ public class GameEngine implements Runnable {
             soundManager.restartBackground();
             if (isSoarControlled()) {
                 setAgentTextBoxVisible(true);
+                System.out.println("Running game controlled by Soar agent: "+soarAgentPath);
+                soarLink = new MarioSoarLink(soarAgentPath, this);
+                if (useSoarDebugger) {
+                    soarLink.getAgent().SpawnDebugger();
+                    soarLink.getAgent().RunSelf(1); // Run once to get things initted
+                    //frame.requestFocus();
+                }
             }
         }
         else
@@ -197,10 +210,6 @@ public class GameEngine implements Runnable {
             while (delta >= 1) {
                 if (gameStatus == GameStatus.RUNNING) {
                     gameLoop();
-                    if (soarControlled) {
-                        mapManager.updateSoarInput(soarLink);
-                        soarLink.runAgent(1);
-                    }
                 }
                 else if (gameStatus == GameStatus.MARIO_DEAD) {
                     mapManager.getMario().updateLocation();
@@ -209,6 +218,12 @@ public class GameEngine implements Runnable {
                 gameTickTime++;
             }
             render();
+
+            // Update Soar only once per render
+            if (gameStatus == GameStatus.RUNNING && soarControlled) {
+                mapManager.updateSoarInput(soarLink);
+                soarLink.runAgent(1);
+            }
 
             if(gameStatus != GameStatus.RUNNING) {
                 timer = System.currentTimeMillis();
@@ -239,6 +254,8 @@ public class GameEngine implements Runnable {
 
     private void render() {
         uiManager.repaint();
+        if (soarControlled)
+            uiManager.revalidate();     // Force redraw
     }
 
     private void gameLoop() {
@@ -566,12 +583,20 @@ public class GameEngine implements Runnable {
 
     public static void main(String... args) {
         if (args.length > 0) {
-            // If there is an arg, assume it's the path to a Soar agent
-            new GameEngine(args[0]);
+            // If there is at least one arg, assume it's the path to a Soar agent
+            String agentPath = args[0];
+            boolean openDebugger = false;
+            // If there is more than one arg, check for commands
+            if (args.length > 1) {
+                if (args[1].equals("--open-debugger")) {
+                    openDebugger = true;
+                }
+            }
+            new GameEngine(agentPath, openDebugger);
         }
         else {
             // If there are no args, run with human control
-            new GameEngine(null);
+            new GameEngine(null, false);
         }
         
     }

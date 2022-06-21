@@ -18,8 +18,9 @@ public class UIManager extends JPanel{
     private BufferedImage coinIcon;
     private BufferedImage selectIcon;
     private MapSelection mapSelection;
+    private boolean autoDispose;
 
-    public UIManager(GameEngine engine, int width, int height) {
+    public UIManager(GameEngine engine, int width, int height, boolean autoDispose) {
         //this.setLayout(null);
         setPreferredSize(new Dimension(width, height));
         setMaximumSize(new Dimension(width, height));
@@ -47,6 +48,7 @@ public class UIManager extends JPanel{
             e.printStackTrace();
         }
 
+        this.autoDispose = autoDispose;
     }
 
     @Override
@@ -90,7 +92,8 @@ public class UIManager extends JPanel{
             }
         }
 
-        g2.dispose();
+        if (autoDispose)
+            g2.dispose();     // Disposing this interferes with the Soar Java debugger if that is also running. They share the same Graphics apparently. It will be disposed automatically anyway.
     }
 
     private void drawRemainingTime(Graphics2D g2) {
