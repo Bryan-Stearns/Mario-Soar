@@ -1,7 +1,6 @@
 package manager;
 
 import model.hero.Mario;
-import sml.smlRunStepSize;
 import view.ImageLoader;
 import view.StartScreenSelection;
 import view.UIManager;
@@ -30,6 +29,7 @@ public class GameEngine implements Runnable {
 
     private boolean soarControlled = false;
     private boolean useSoarDebugger = false;
+    private boolean debuggerCreated = false;
     private String soarAgentPath = null;
     private MarioSoarLink soarLink;
 
@@ -56,7 +56,7 @@ public class GameEngine implements Runnable {
         InputManager inputManager = new InputManager(this);
         gameStatus = GameStatus.START_SCREEN;
         camera = new Camera(WIDTH, HEIGHT);
-        uiManager = new UIManager(this, WIDTH, HEIGHT, !useSoarDebugger);
+        uiManager = new UIManager(this, WIDTH, HEIGHT);
         soundManager = new SoundManager();
         mapManager = new MapManager(camera);
 
@@ -105,9 +105,11 @@ public class GameEngine implements Runnable {
     private void reset() {
         if (isSoarControlled()) {
             setAgentTextBoxVisible(false);
-            if (useSoarDebugger) {
+            soarLink.shutDown();
+            soarLink = null;
+            /*if (useSoarDebugger) {
                 soarLink.getAgent().KillDebugger();
-            }
+            }*/
         }
         resetCamera();
         soundManager.stopAllMusic();
@@ -167,7 +169,10 @@ public class GameEngine implements Runnable {
                 System.out.println("Running game controlled by Soar agent: "+soarAgentPath);
                 soarLink = new MarioSoarLink(soarAgentPath, this);
                 if (useSoarDebugger) {
-                    soarLink.getAgent().SpawnDebugger();
+                    if (!debuggerCreated) {
+                        soarLink.getAgent().SpawnDebugger();
+                        debuggerCreated = true;
+                    }
                     soarLink.getAgent().RunSelf(1); // Run once to get things initted
                     //frame.requestFocus();
                 }
@@ -220,9 +225,9 @@ public class GameEngine implements Runnable {
             render();
 
             // Update Soar only once per render
-            if (gameStatus == GameStatus.RUNNING && soarControlled) {
+            if (gameStatus == GameStatus.RUNNING && soarControlled && soarLink != null) {
                 mapManager.updateSoarInput(soarLink);
-                soarLink.runAgent(1);
+                soarLink.runAgent(1);   // TODO : soarLink isn't remade by now when running a second game
             }
 
             if(gameStatus != GameStatus.RUNNING) {
@@ -368,18 +373,19 @@ public class GameEngine implements Runnable {
             if (input == ButtonAction.PAUSE_RESUME) {
                 pauseGame();
             }
+            else if(input == ButtonAction.GO_TO_START_SCREEN){
+                if (isSoarControlled()) {
+                    setAgentTextBoxVisible(false);
+                }
+                reset();
+                //setGameStatus(GameStatus.START_SCREEN);
+            }
         } else if(gameStatus == GameStatus.GAME_OVER && input == ButtonAction.GO_TO_START_SCREEN){
             reset();
         } else if(gameStatus == GameStatus.MISSION_PASSED && input == ButtonAction.GO_TO_START_SCREEN){
             reset();
         }
 
-        if(input == ButtonAction.GO_TO_START_SCREEN){
-            if (isSoarControlled()) {
-                setAgentTextBoxVisible(false);
-            }
-            setGameStatus(GameStatus.START_SCREEN);
-        }
     }
 
     private void selectOption(boolean selectUp) {
@@ -497,6 +503,8 @@ public class GameEngine implements Runnable {
                     engine.triggerGameOver();
                 }
                 else {
+                    if (isSoarControlled())
+                        soarLink.resetAgent();
                     engine.setGameStatus(GameStatus.RUNNING);
                     engine.getMapManager().resetCurrentMap(engine);
                 }
@@ -521,6 +529,14 @@ public class GameEngine implements Runnable {
                 engine.reset();
             }
         }));
+    }
+
+    public boolean isSoarDebuggerOpen() {
+        if (!soarControlled) {
+            return false;
+        }
+
+        return useSoarDebugger;
     }
 
     private int passMission() {

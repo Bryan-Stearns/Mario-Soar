@@ -64,6 +64,11 @@ public class MarioSoarLink extends SoarLinkAbstract {
         t.start();
     }
 
+    public void resetAgent() {
+        cleanInputWMEs();
+        agent.InitSoar();
+    }
+
     /*private String getWmeTreeString(WMElement wme) {
         String retVal = "";
         String idStr = wme.GetIdentifierName();
@@ -187,7 +192,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
         marioBody.add_aug("x-absolute", (int)mario.getX());
         marioBody.add_aug("y-absolute", (int)mario.getY());
         marioBody.add_aug("x-speed", mario.getVelX());
-        marioBody.add_aug("y-speed", mario.getVelYAbs());
+        marioBody.add_aug("y-speed", mario.getVelYAbs() * (mario.isFalling() ? 1.0 : -1.0));
         marioBody.add_aug("is-super", (mario.isSuper() ? "true" : "false"));
         marioBody.add_aug("is-fire", (mario.getMarioForm().isFire() ? "true" : "false"));
         marioBody.add_aug("height", mario.getDimension().height);
@@ -347,13 +352,18 @@ public class MarioSoarLink extends SoarLinkAbstract {
                 output_keyPressed_B = false,
                 output_messageGiven = false;
         
-        for (int i=0, iLim=agent.GetNumberCommands(); i<iLim; ++i) {
+        int numCmds = agent.GetNumberCommands();
+        if (numCmds == 0) {
+            return;
+        }
+
+        for (int i=0; i<numCmds; ++i) {
             Identifier commandId = agent.GetCommand(i);
 
-			if (commandId.GetParameterValue("status") != null) {
+			/*if (commandId.GetParameterValue("status") != null) {
 				//System.out.println("Status already processed.");
 				continue;
-			}
+			}*/
 
             String commandAttr = commandId.GetAttribute();
             
@@ -403,7 +413,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
             // The message text was already updated earlier, so just update the flag here
             messageGiven = true;
         }
-        if (messageGiven && !output_messageGiven) {
+        else if (messageGiven && !output_messageGiven) {
             // Clear message text display if no more message
             //engine.setAgentMessage("");
             messageGiven = false;
@@ -415,7 +425,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
             keyPressed_left = true;
             engine.receiveInput(ButtonAction.M_LEFT);
         }
-        if (keyPressed_left && !output_keyPressed_left) {
+        else if (keyPressed_left && !output_keyPressed_left) {
             // Release left key
             keyPressed_left = false;
             engine.receiveInput(ButtonAction.LEFT_RELEASED);
@@ -426,7 +436,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
             keyPressed_right = true;
             engine.receiveInput(ButtonAction.M_RIGHT);
         }
-        if (keyPressed_right && !output_keyPressed_right) {
+        else if (keyPressed_right && !output_keyPressed_right) {
             // Release right key
             keyPressed_right = false;
             engine.receiveInput(ButtonAction.RIGHT_RELEASED);
@@ -437,7 +447,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
             keyPressed_A = true;
             engine.receiveInput(ButtonAction.JUMP);
         }
-        if (keyPressed_A && !output_keyPressed_A) {
+        else if (keyPressed_A && !output_keyPressed_A) {
             // Release A key
             keyPressed_A = false;
             engine.receiveInput(ButtonAction.JUMP_RELEASED);
@@ -448,7 +458,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
             keyPressed_B = true;
             engine.receiveInput(ButtonAction.FIRE);
         }
-        if (keyPressed_B && !output_keyPressed_B) {
+        else if (keyPressed_B && !output_keyPressed_B) {
             // Release B key
             keyPressed_B = false;
         }

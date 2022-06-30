@@ -57,6 +57,9 @@ public class InputManager implements KeyListener, MouseListener {
             if (keyCode == KeyEvent.VK_ESCAPE) {
                 currentAction = ButtonAction.PAUSE_RESUME;
             }
+            else if (keyCode == KeyEvent.VK_BACK_SPACE) {
+                currentAction = ButtonAction.GO_TO_START_SCREEN;
+            }
         }
 
         notifyInput(currentAction);

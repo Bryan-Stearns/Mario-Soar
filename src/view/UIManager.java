@@ -9,7 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class UIManager extends JPanel{
+public class UIManager extends JPanel {
 
     private GameEngine engine;
     private Font gameFont;
@@ -18,9 +18,8 @@ public class UIManager extends JPanel{
     private BufferedImage coinIcon;
     private BufferedImage selectIcon;
     private MapSelection mapSelection;
-    private boolean autoDispose;
 
-    public UIManager(GameEngine engine, int width, int height, boolean autoDispose) {
+    public UIManager(GameEngine engine, int width, int height) {
         //this.setLayout(null);
         setPreferredSize(new Dimension(width, height));
         setMaximumSize(new Dimension(width, height));
@@ -47,8 +46,6 @@ public class UIManager extends JPanel{
             gameFont = new Font("Verdana", Font.PLAIN, 12);
             e.printStackTrace();
         }
-
-        this.autoDispose = autoDispose;
     }
 
     @Override
@@ -92,8 +89,9 @@ public class UIManager extends JPanel{
             }
         }
 
-        if (autoDispose)
+        if (!engine.isSoarDebuggerOpen()) {
             g2.dispose();     // Disposing this interferes with the Soar Java debugger if that is also running. They share the same Graphics apparently. It will be disposed automatically anyway.
+        }
     }
 
     private void drawRemainingTime(Graphics2D g2) {
@@ -132,9 +130,13 @@ public class UIManager extends JPanel{
     private void drawPauseScreen(Graphics2D g2) {
         g2.setFont(gameFont.deriveFont(50f));
         g2.setColor(Color.WHITE);
-        String displayedStr = "PAUSED";
-        int stringLength = g2.getFontMetrics().stringWidth(displayedStr);
-        g2.drawString(displayedStr, (getWidth()-stringLength)/2, getHeight()/2);
+        String displayedStr1 = "PAUSED",
+                displayedStr2 = "PRESS BACKSPACE TO EXIT";
+        int stringLength = g2.getFontMetrics().stringWidth(displayedStr1);
+        g2.drawString(displayedStr1, (getWidth()-stringLength)/2, getHeight()/2);
+        g2.setFont(gameFont.deriveFont(25f));
+        stringLength = g2.getFontMetrics().stringWidth(displayedStr2);
+        g2.drawString(displayedStr2, (getWidth()-stringLength)/2, getHeight()/2+48);
     }
 
     private void drawAcquiredCoins(Graphics2D g2) {
