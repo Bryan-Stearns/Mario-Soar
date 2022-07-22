@@ -20,13 +20,13 @@ public class Map {
 
     private double remainingTime;
     private Mario mario;
-    private ArrayList<Brick> bricks = new ArrayList<>();
-    private ArrayList<Enemy> enemies = new ArrayList<>();
-    private ArrayList<Brick> groundBricks = new ArrayList<>();
-    private ArrayList<Prize> revealedPrizes = new ArrayList<>();
-    private ArrayList<BoostItem> revealedBoosts = new ArrayList<>();
-    private ArrayList<Brick> revealedBricks = new ArrayList<>();
-    private ArrayList<Fireball> fireballs = new ArrayList<>();
+    private ArrayList<Brick> bricks = new ArrayList<Brick>();
+    private ArrayList<Enemy> enemies = new ArrayList<Enemy>();
+    private ArrayList<Brick> groundBricks = new ArrayList<Brick>();
+    private ArrayList<Prize> revealedPrizes = new ArrayList<Prize>();
+    private ArrayList<BoostItem> revealedBoosts = new ArrayList<BoostItem>();
+    private ArrayList<Brick> revealedBricks = new ArrayList<Brick>();
+    private ArrayList<Fireball> fireballs = new ArrayList<Fireball>();
     private EndFlag endPoint;
     private BufferedImage backgroundImage;
     private double bottomBorder = 720 - 96;
@@ -95,7 +95,7 @@ public class Map {
     }
 
     public ArrayList<Brick> getAllBricks() {
-        ArrayList<Brick> allBricks = new ArrayList<>();
+        ArrayList<Brick> allBricks = new ArrayList<Brick>();
 
         allBricks.addAll(bricks);
         allBricks.addAll(groundBricks);

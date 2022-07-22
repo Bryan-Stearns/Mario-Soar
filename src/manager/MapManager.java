@@ -204,7 +204,7 @@ public class MapManager {
         Mario mario = getMario();
         ArrayList<Brick> bricks = map.getAllBricks();
         ArrayList<Enemy> enemies = map.getEnemies();
-        ArrayList<GameObject> toBeRemoved = new ArrayList<>();
+        ArrayList<GameObject> toBeRemoved = new ArrayList<GameObject>();
         Rectangle marioBounds = mario.getBounds();
         //int collisionBufferDist = 8;
 
@@ -531,7 +531,7 @@ public class MapManager {
 
     private void checkMarioPrizeContact(GameEngine engine) {
         ArrayList<Prize> prizes = map.getRevealedPrizes();
-        ArrayList<GameObject> toBeRemoved = new ArrayList<>();
+        ArrayList<GameObject> toBeRemoved = new ArrayList<GameObject>();
 
         Rectangle marioBounds = getMario().getBounds();
         for (Prize prize : prizes) {
@@ -552,7 +552,7 @@ public class MapManager {
         ArrayList<Fireball> fireballs = map.getFireballs();
         ArrayList<Enemy> enemies = map.getEnemies();
         ArrayList<Brick> bricks = map.getAllBricks();
-        ArrayList<GameObject> toBeRemoved = new ArrayList<>();
+        ArrayList<GameObject> toBeRemoved = new ArrayList<GameObject>();
 
         for(Fireball fireball : fireballs){
             Rectangle fireballBounds = fireball.getBounds();

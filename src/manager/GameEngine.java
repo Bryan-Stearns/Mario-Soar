@@ -164,6 +164,7 @@ public class GameEngine implements Runnable {
         if (loaded) {
             setGameStatus(GameStatus.RUNNING);
             soundManager.restartBackground();
+
             if (isSoarControlled()) {
                 setAgentTextBoxVisible(true);
                 System.out.println("Running game controlled by Soar agent: "+soarAgentPath);
@@ -175,6 +176,8 @@ public class GameEngine implements Runnable {
                     }
                     soarLink.getAgent().RunSelf(1); // Run once to get things initted
                     //frame.requestFocus();
+                    // Start on the pause screen so the debugger gets a chance to load
+                    pauseGame();
                 }
             }
         }

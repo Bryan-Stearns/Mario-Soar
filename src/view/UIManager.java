@@ -42,7 +42,10 @@ public class UIManager extends JPanel {
         try {
             InputStream in = getClass().getResourceAsStream("/media/font/mario-font.ttf");
             gameFont = Font.createFont(Font.TRUETYPE_FONT, in);
-        } catch (FontFormatException | IOException e) {
+        } catch (FontFormatException e) {
+            gameFont = new Font("Verdana", Font.PLAIN, 12);
+            e.printStackTrace();
+        } catch (IOException e) {
             gameFont = new Font("Verdana", Font.PLAIN, 12);
             e.printStackTrace();
         }
@@ -131,12 +134,15 @@ public class UIManager extends JPanel {
         g2.setFont(gameFont.deriveFont(50f));
         g2.setColor(Color.WHITE);
         String displayedStr1 = "PAUSED",
-                displayedStr2 = "PRESS BACKSPACE TO EXIT";
+                displayedStr2 = "PRESS ESC TO CONTINUE",
+                displayedStr3 = "PRESS BACKSPACE TO EXIT";
         int stringLength = g2.getFontMetrics().stringWidth(displayedStr1);
         g2.drawString(displayedStr1, (getWidth()-stringLength)/2, getHeight()/2);
         g2.setFont(gameFont.deriveFont(25f));
         stringLength = g2.getFontMetrics().stringWidth(displayedStr2);
         g2.drawString(displayedStr2, (getWidth()-stringLength)/2, getHeight()/2+48);
+        stringLength = g2.getFontMetrics().stringWidth(displayedStr3);
+        g2.drawString(displayedStr3, (getWidth()-stringLength)/2, getHeight()/2+96);
     }
 
     private void drawAcquiredCoins(Graphics2D g2) {

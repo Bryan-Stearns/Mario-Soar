@@ -371,7 +371,9 @@ public class MarioSoarLink extends SoarLinkAbstract {
                 String message = commandId.GetParameterValue("value");
                 output_messageGiven = true;
                 engine.setAgentMessage(message);
-                commandId.AddStatusComplete();
+                if (commandId.GetParameterValue("status") == null) {
+                    commandId.AddStatusComplete();
+                }
                 continue;
             }
             else if (commandAttr.equals("key-press")) {
@@ -379,26 +381,36 @@ public class MarioSoarLink extends SoarLinkAbstract {
 
                 if (keyCode.equals("A")) {
                     output_keyPressed_A = true;
-                    commandId.AddStatusComplete();
+                    if (commandId.GetParameterValue("status") == null) {
+                        commandId.AddStatusComplete();
+                    }
                     continue;
                 }
                 else if (keyCode.equals("B")) {
                     output_keyPressed_B = true;
-                    commandId.AddStatusComplete();
+                    if (commandId.GetParameterValue("status") == null) {
+                        commandId.AddStatusComplete();
+                    }
                     continue;
                 }
                 else if (keyCode.equals("left")) {
                     output_keyPressed_left = true;
-                    commandId.AddStatusComplete();
+                    if (commandId.GetParameterValue("status") == null) {
+                        commandId.AddStatusComplete();
+                    }
                     continue;
                 }
                 else if (keyCode.equals("right")) {
                     output_keyPressed_right = true;
-                    commandId.AddStatusComplete();
+                    if (commandId.GetParameterValue("status") == null) {
+                        commandId.AddStatusComplete();
+                    }
                     continue;
                 }
                 else {
-                    commandId.AddStatusError();
+                    if (commandId.GetParameterValue("status") == null) {
+                        commandId.AddStatusError();
+                    }
                     continue;
                 }
             }
@@ -415,7 +427,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
         }
         else if (messageGiven && !output_messageGiven) {
             // Clear message text display if no more message
-            //engine.setAgentMessage("");
+            engine.setAgentMessage("");
             messageGiven = false;
         }
 
