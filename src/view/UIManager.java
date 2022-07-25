@@ -18,6 +18,7 @@ public class UIManager extends JPanel {
     private BufferedImage coinIcon;
     private BufferedImage selectIcon;
     private MapSelection mapSelection;
+    private String pauseTitle = "PAUSED";
 
     public UIManager(GameEngine engine, int width, int height) {
         //this.setLayout(null);
@@ -133,11 +134,10 @@ public class UIManager extends JPanel {
     private void drawPauseScreen(Graphics2D g2) {
         g2.setFont(gameFont.deriveFont(50f));
         g2.setColor(Color.WHITE);
-        String displayedStr1 = "PAUSED",
-                displayedStr2 = "PRESS ESC TO CONTINUE",
+        String displayedStr2 = "PRESS ESC TO CONTINUE",
                 displayedStr3 = "PRESS BACKSPACE TO EXIT";
-        int stringLength = g2.getFontMetrics().stringWidth(displayedStr1);
-        g2.drawString(displayedStr1, (getWidth()-stringLength)/2, getHeight()/2);
+        int stringLength = g2.getFontMetrics().stringWidth(pauseTitle);
+        g2.drawString(pauseTitle, (getWidth()-stringLength)/2, getHeight()/2);
         g2.setFont(gameFont.deriveFont(25f));
         stringLength = g2.getFontMetrics().stringWidth(displayedStr2);
         g2.drawString(displayedStr2, (getWidth()-stringLength)/2, getHeight()/2+48);
@@ -195,6 +195,10 @@ public class UIManager extends JPanel {
 
     public int changeSelectedMap(int index, boolean up){
         return mapSelection.changeSelectedMap(index, up);
+    }
+
+    public void setPauseTitle(String pauseTitle) {
+        this.pauseTitle = pauseTitle;
     }
 
 }

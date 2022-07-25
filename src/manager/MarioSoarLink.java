@@ -353,12 +353,14 @@ public class MarioSoarLink extends SoarLinkAbstract {
                 output_messageGiven = false;
         
         int numCmds = agent.GetNumberCommands();
+        int numChildren = output.ConvertToIdentifier().GetNumberChildren();
         if (numCmds == 0) {
             return;
         }
 
-        for (int i=0; i<numCmds; ++i) {
-            Identifier commandId = agent.GetCommand(i);
+        for (int i=0; i<numChildren; ++i) {
+            //Identifier commandId = agent.GetCommand(i);
+            Identifier commandId = output.ConvertToIdentifier().GetChild(i).ConvertToIdentifier();
 
 			/*if (commandId.GetParameterValue("status") != null) {
 				//System.out.println("Status already processed.");
@@ -474,6 +476,12 @@ public class MarioSoarLink extends SoarLinkAbstract {
             // Release B key
             keyPressed_B = false;
         }
+    }
+
+    @Override
+    protected void user_interruptEvent() {
+        // If the agent code interrupts the agent, also pause the game
+        engine.pauseGame("AGENT INTERRUPTED");
     }
     
 }

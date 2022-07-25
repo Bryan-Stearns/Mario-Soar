@@ -177,7 +177,7 @@ public class GameEngine implements Runnable {
                     soarLink.getAgent().RunSelf(1); // Run once to get things initted
                     //frame.requestFocus();
                     // Start on the pause screen so the debugger gets a chance to load
-                    pauseGame();
+                    pauseGame(null);
                 }
             }
         }
@@ -369,12 +369,12 @@ public class GameEngine implements Runnable {
             } else if (input == ButtonAction.FIRE) {
                 mapManager.fire(this);
             } else if (input == ButtonAction.PAUSE_RESUME) {
-                pauseGame();
+                pauseGame(null);
             }
 
         } else if (gameStatus == GameStatus.PAUSED) {
             if (input == ButtonAction.PAUSE_RESUME) {
-                pauseGame();
+                pauseGame(null);
             }
             else if(input == ButtonAction.GO_TO_START_SCREEN){
                 if (isSoarControlled()) {
@@ -401,9 +401,13 @@ public class GameEngine implements Runnable {
         }
     }
 
-    private void pauseGame() {
+    public void pauseGame(String pauseTitle) {
         if (gameStatus == GameStatus.RUNNING) {
             setGameStatus(GameStatus.PAUSED);
+            if (pauseTitle == null)
+                uiManager.setPauseTitle("PAUSED");
+            else 
+                uiManager.setPauseTitle(pauseTitle);
             soundManager.pauseBackground();
             setEnemiesAnimating(false);
         } else if (gameStatus == GameStatus.PAUSED) {

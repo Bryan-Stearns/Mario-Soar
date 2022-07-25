@@ -1,0 +1,177 @@
+# This line disables state no-change impasses. We'll introduce impasses later.
+soar wait-snc on
+
+
+### Elaborate: Falling ###
+
+sp {elaborate*mario*falling
+    "This rule prints a message in the Mario world environment when Mario is falling."
+    (state <s> ^io <io>)
+    (<io> ^input-link <il>)
+    # This condition tests that Mario's vertical speed is > 0, which means he is falling
+    (<il> ^mario.body.y-speed > 0.0)
+    -->
+    # Elaborate a structure in working memory that indicates that Mario is falling
+    (<s> ^mario-is-falling true)}
+
+
+sp {elaborate*mario*output-message*falling
+    "This rule prints a message in the Mario world environment when Mario is not falling."
+    (state <s> ^io <io>
+            ^mario-is-falling true) # Test that Mario thinks he is falling
+    (<io> ^output-link <ol>)
+    -->
+    # Send a message to the screen indicating Mario's thoughts
+    (<ol> ^message <message-new>)
+    (<message-new> ^value |I'm falling!|)}
+
+
+
+### Elaborate: on-ground ###
+
+sp {elaborate*mario*on-ground
+    "This rule prints a message in the Mario world environment when Mario is falling."
+    (state <s> ^io <io>)
+    (<io> ^input-link <il>)
+    # This condition tests that Mario's vertical speed is 0, which means he is not jumping or falling
+    (<il> ^mario.body.y-speed 0.0)
+    -->
+    # Elaborate a structure in working memory that indicates that Mario is falling
+    (<s> ^mario-on-ground true)}
+
+
+sp {elaborate*mario*output-message*on-ground
+    "This rule prints a message in the Mario world environment when Mario is not falling."
+    (state <s> ^io <io>
+            ^mario-on-ground true   # Test that Mario thinks he is on the ground
+            -^mario-falling true)   # Test that Mario does not think he is falling
+    (<io> ^output-link <ol>)
+    -->
+    # Send a message to the screen indicating Mario's thoughts
+    (<ol> ^message <message-new>)
+    (<message-new> ^value |I'm on the ground.|)}
+
+
+
+#####
+## OPERATOR: move-right
+## Move Mario to the right by pressing the "right" key
+#####
+
+sp {propose*mario*move-right
+    "This rule proposes the (move-right) operator when Mario is not falling"
+    (state <s> ^io.output-link <ol>)    # Notice the shorter "dot notation" that we can use to referece the output link
+    (<ol> -^key-press.value right)      # Test that the output-link does NOT already have a move-right command
+    -->
+    # This action proposes a new operator named "move-right". 
+    # (The "operator" attribute is a special keyword for Soar.)
+    # The '+' symbol means "acceptable preference", which is the basic preference when proposing an operator - it will be up to the agent's decision making whether this operator gets selected or not.
+    # The '=' symbol means "indifferent preference". The agent will select an operator randomly if they all have the '=' preference
+    (<s> ^operator <o> + =)
+    (<o> ^name move-right)}
+
+sp {apply*mario*move-right
+    "This rule applies the (move-right) operator by sending the [key-press.value right] command to the environment"
+    (state <s> ^operator.name move-right    # This tests that (move-right) is currently selected as the operator
+            ^io.output-link <ol>)
+    -->
+    # This action creates a new command on the output-link which tells Mario to move to the right
+    (<ol> ^key-press <kp-new>)
+    (<kp-new> ^value right)}
+
+
+#####
+## OPERATOR: jump
+## Make Mario jump by pressing the "A" (jump) key
+#####
+
+sp {propose*mario*jump
+    "This rule proposes the (jump) operator when Mario is on the ground"
+    (state <s> ^io.output-link <ol>     # Notice the shorter "dot notation" that we can use to referece the output link
+            ^mario-on-ground true)      # 
+    (<ol> -^key-press.value A)          # Test that the output-link does NOT already have a jump command
+    -->
+    # This action proposes a new operator named "move-right". 
+    # (The "operator" attribute is a special keyword for Soar.)
+    # The '+' symbol means "acceptable preference", which is the basic preference when proposing an operator - it will be up to the agent's decision making whether this operator gets selected or not.
+    # The '=' symbol means "indifferent preference". The agent will select an operator randomly if they all have the '=' preference
+    (<s> ^operator <o> + =)
+    (<o> ^name jump)}
+
+sp {apply*mario*jump
+    "This rule applies the (jump) operator by sending the [key-press.value A] command to the environment"
+    (state <s> ^operator.name jump      # This tests that (jump) is currently selected as the operator
+            ^io.output-link <ol>)
+    -->
+    # This action creates a new command on the output-link which tells Mario to jump (by pressing the 'A' key)
+    (<ol> ^key-press <kp-new>)
+    (<kp-new> ^value A)}
+# sp {propose*mario*jump
+#     "Always propose to make Mario jump"
+#     (state <s> ^io.input-link <il>)
+#     (<il> ^mario.body.y-speed <= 0)
+#     -->
+#     (<s> ^operator <o> + = >)
+#     (<o> ^name jump)}
+
+# sp {apply*mario*jump
+#     (state <s> ^operator.name jump
+#             ^io.output-link <ol>)
+#     -->
+#     (<ol> ^key-press <k-new>)
+#     (<k-new> ^value A)}
+
+
+#####
+## OPERATOR: clean-output
+## Clean any commands that have been processed by the environment
+#####
+
+sp {propose*clean-output*right
+    "Once the environment adds status complete, remove that command"
+    (state <s> ^io.output-link <ol>)
+    # The Mario environment adds the following structure to our output once it has finished reading it
+    (<ol> ^key-press <kp>)
+    (<kp> ^value right
+        ^status complete)
+    -->
+    # Propose the clear-output operator with '>' ("best") preference so it will be selected before the other operators
+    (<s> ^operator <o> + > =)
+    (<o> ^name clean-output
+        ^clean-command <kp>)}
+
+sp {propose*clean-output*long-jump
+    "Long jump: Wait to remove the jump command until Mario has risen as far as he can"
+    (state <s> ^io <io>)
+    (<io> ^input-link <il> 
+        ^output-link <ol>)
+    # Check that Mario is no longer rising
+    (<il> ^mario.body.y-speed >= 0)
+    # The Mario environment adds the following structure to our output once it has finished reading it
+    (<ol> ^key-press <kp>)
+    (<kp> ^value A
+        ^status complete)
+    -->
+    # Propose the clear-output operator with '>' ("best") preference so it will be selected before the other operators
+    (<s> ^operator <o> + > =)
+    #(interrupt)
+    (<o> ^name clean-output
+        ^clean-command <kp>)}
+
+sp {apply*clean-output
+    (state <s> ^operator <o>
+            ^io.output-link <ol>)
+    # Get the specific <cmd> command to remove from the output-link
+    (<o> ^name clean-output
+        ^clean-command <cmd>)
+    # Find the output-link command that has the same <cmd> ID as was attached to the selected operator.
+    # This gives this rule access to the <cmd-name> attribute name, which we can show in the (write) command message.
+    (<ol> ^<cmd-name> <cmd>)
+    # Find the specific key of this output command, which we can show in the (write) command message.
+    (<cmd> ^value <val>)
+    -->
+    # Print a message to the debugger so we can easily see that the agent is clearing the structure
+    (write |CLEARING ^| <cmd-name> | | <cmd> |:| <val> (crlf))
+    # Remove the output command
+    (<ol> ^<cmd-name> <cmd> -)}
+
