@@ -1,6 +1,7 @@
 package manager;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 //import javax.lang.model.util.ElementScanner14;
 
@@ -19,7 +20,6 @@ import model.prize.BoostItem;
 import model.prize.FireFlower;
 import model.prize.OneUpMushroom;
 import model.prize.SuperMushroom;
-import sml.Agent;
 import sml.Identifier;
 import sml.WMElement;
 
@@ -32,6 +32,12 @@ public class MarioSoarLink extends SoarLinkAbstract {
                     messageGiven = false;
     private boolean status = true;
     private String error_message = "";
+    private Identifier marioRoot, marioHud, marioBody,
+                       enemiesRoot,
+                       bricksRoot,
+                       specialRoot;
+    private HashMap<Integer, Identifier> objId_map;         // Records the input ID structs currently sent to the agent's input-link. Maps from [game-object-hash] to [sml.Identifier]
+    private ArrayList<Integer> refreshedObjectHashes;       // Records the input objects that are used each cycle (any input not referenced in this list should get destroyed after all input is refreshed)
 
     public MarioSoarLink(String agentFilePath, GameEngine engine) {
         // Start the soar kernel+agent using port 12121 (the default)
@@ -49,23 +55,50 @@ public class MarioSoarLink extends SoarLinkAbstract {
         }
 
         agent.SetBlinkIfNoChange(false);
+
+        // Create the top-level input parent structures
+        Identifier inputId = agent.GetInputLink();
+        marioRoot = inputId.CreateIdWME("mario");
+        marioHud = marioRoot.CreateIdWME("hud");
+        marioBody = marioRoot.CreateIdWME("body");
+        enemiesRoot = inputId.CreateIdWME("enemies");
+        bricksRoot = inputId.CreateIdWME("bricks");
+        specialRoot = inputId.CreateIdWME("special");
+        agent.Commit();
+
+        // Set up Identifier tracking structs
+        objId_map = new HashMap<Integer, Identifier>(40);
+        refreshedObjectHashes = new ArrayList<Integer>(40);
     }
+
+    /** TODO
+     * Add "^touching-... <id>" augs to bricks touching each other
+     * // Add "^touching-bottom <id>" augs to enemies touching bricks
+     */
     
     public boolean getWasError() { return !status; }
     public String getErrorMessage() { return error_message; }
 
-    public void runAgentForever_nonBlocking() {
-        final Agent a = agent; // the final is effectively redundant due to the nature of the Soar agent, but good practice
+    /*public void runAgentForever_nonBlocking() {
+        final Agent a = agent; // the final is effectively redundant due to the nature of the Soar agent, but good practice for spawning a thread
         Thread t = new Thread(new Runnable() {
             public void run() { 
               a.RunSelfForever();
             };
         });
         t.start();
-    }
+    }*/
 
+    public void cleanGameInput() {
+        cleanMarioWMEs();
+        // Remove all IDs that have been created underneath the main root objects
+        refreshedObjectHashes.clear();
+        removeUnusedIds();
+    }
+    
     public void resetAgent() {
-        cleanInputWMEs();
+        //cleanInputWMEs();
+        cleanGameInput();
         agent.InitSoar();
     }
 
@@ -101,43 +134,54 @@ public class MarioSoarLink extends SoarLinkAbstract {
         return getWmeTreeString(wme);
     }*/
 
-    private SoarMemObj makeBrickSoarObj(Brick brick) {
-        SoarMemObj retVal = new SoarMemObj("brick-obj", SoarValueType.OBJECT);
-        Mario mario = engine.getMapManager().getMario();
-
-        retVal.add_aug("type", brick.getType());
-        retVal.add_aug("is-breakable", (brick.isBreakable() ? "true" : "false"));
-        retVal.add_aug("x-absolute", (int)brick.getX());
-        retVal.add_aug("y-absolute", (int)brick.getY());
-        retVal.add_aug("x-relative", (int)mario.getRelativeX(brick.getX()));
-        retVal.add_aug("y-relative", (int)mario.getRelativeY(brick.getY()));
-
-        return retVal;
+    private void cleanIDChildren(Identifier id) {
+        ArrayList<WMElement> deleteList = new ArrayList<WMElement>(6);
+        for (int i=0, iLim=id.GetNumberChildren(); i<iLim; ++i) {
+            deleteList.add(id.GetChild(i));
+        }
+        for (WMElement wme : deleteList) {
+            wme.DestroyWME();
+        }
     }
 
-    private SoarMemObj makeEnemySoarObj(Enemy enemy) {
-        SoarMemObj retVal = new SoarMemObj("enemy-obj", SoarValueType.OBJECT);
+    /*private void cleanAllBrickWMEs() {
+        ArrayList<WMElement> deleteList = new ArrayList<WMElement>(11);
+        for (int i=0, iLim=bricksRoot.GetNumberChildren(); i<iLim; ++i) {
+            deleteList.add(bricksRoot.GetChild(i));
+        }
+        for (WMElement wme : deleteList) {
+            wme.DestroyWME();
+        }
+    }*/
+
+    private void addBrickIDAugs(Identifier brickId, Brick brick) {
+        Mario mario = engine.getMapManager().getMario();
+        brickId.CreateStringWME("type", brick.getType());
+        brickId.CreateStringWME("is-breakable", (brick.isBreakable() ? "true" : "false"));
+        brickId.CreateIntWME("x-absolute", (int)brick.getX());
+        brickId.CreateIntWME("y-absolute", (int)brick.getY());
+        brickId.CreateIntWME("x-relative", (int)mario.getRelativeX(brick.getX()));
+        brickId.CreateIntWME("y-relative", (int)mario.getRelativeY(brick.getY()));
+
+    }
+
+    private void addEnemyIDAugs(Identifier enemyId, Enemy enemy) {
         Mario mario = engine.getMapManager().getMario();
 
         String type = "goomba";
         if (enemy instanceof KoopaTroopa)
             type = "koopatroopa";
 
-        retVal.add_aug("type", type);
-        retVal.add_aug("x-absolute", (int)enemy.getX());
-        retVal.add_aug("y-absolute", (int)enemy.getY());
-        retVal.add_aug("x-relative", (int)mario.getRelativeX(enemy.getX()));
-        retVal.add_aug("y-relative", (int)mario.getRelativeY(enemy.getY()));
-        retVal.add_aug("x-speed", enemy.getVelX());
-        retVal.add_aug("y-speed", enemy.isFalling() ? -enemy.getVelYAbs() : enemy.getVelYAbs());
-
-        return retVal;
+        enemyId.CreateStringWME("type", type);
+        enemyId.CreateIntWME("x-absolute", (int)enemy.getX());
+        enemyId.CreateIntWME("y-absolute", (int)enemy.getY());
+        enemyId.CreateIntWME("x-relative", (int)mario.getRelativeX(enemy.getX()));
+        enemyId.CreateIntWME("y-relative", (int)mario.getRelativeY(enemy.getY()));
+        enemyId.CreateFloatWME("x-speed", enemy.getVelX());
+        enemyId.CreateFloatWME("y-speed", enemy.isFalling() ? -enemy.getVelYAbs() : enemy.getVelYAbs());
     }
 
-    private SoarMemObj makeBoostSoarObj(BoostItem boost) {
-        SoarMemObj retVal = new SoarMemObj("boost-obj", SoarValueType.OBJECT);
-        Mario mario = engine.getMapManager().getMario();
-
+    private String getPowerupType(BoostItem boost) {
         String type = null;
         if (boost instanceof SuperMushroom)
             type = "super-mushroom";
@@ -146,203 +190,218 @@ public class MarioSoarLink extends SoarLinkAbstract {
         else if (boost instanceof OneUpMushroom)
             type = "one-up-mushroom";
         
-        if (type == null)
-            return null;
-
-        retVal.add_aug("type", type);
-        retVal.add_aug("x-absolute", (int)boost.getX());
-        retVal.add_aug("y-absolute", (int)boost.getY());
-        retVal.add_aug("x-relative", (int)mario.getRelativeX(boost.getX()));
-        retVal.add_aug("y-relative", (int)mario.getRelativeY(boost.getY()));
-        retVal.add_aug("x-speed", boost.getVelX());
-        retVal.add_aug("y-speed", boost.isFalling() ? -boost.getVelYAbs() : boost.getVelYAbs());
-
-        return retVal;
+        return type;
     }
 
-    private SoarMemObj makeEndFlagSoarObj(EndFlag endFlag) {
-        SoarMemObj retVal = new SoarMemObj("endflag-obj", SoarValueType.OBJECT);
+    private void addBoostIDAugs(Identifier boostId, BoostItem boost, String boostType) {
         Mario mario = engine.getMapManager().getMario();
 
-        retVal.add_aug("x-absolute", (int)endFlag.getX());
-        retVal.add_aug("y-absolute", (int)endFlag.getY());
-        retVal.add_aug("x-relative", (int)mario.getRelativeX(endFlag.getX()));
-        retVal.add_aug("y-relative", (int)mario.getRelativeY(endFlag.getY()));
-        //retVal.add_aug("height", (int)endFlag.getBounds().getHeight());
-
-        return retVal;
+        boostId.CreateStringWME("type", boostType);
+        boostId.CreateIntWME("x-absolute", (int)boost.getX());
+        boostId.CreateIntWME("y-absolute", (int)boost.getY());
+        boostId.CreateIntWME("x-relative", (int)mario.getRelativeX(boost.getX()));
+        boostId.CreateIntWME("y-relative", (int)mario.getRelativeY(boost.getY()));
+        boostId.CreateFloatWME("x-speed", boost.getVelX());
+        boostId.CreateFloatWME("y-speed", boost.isFalling() ? -boost.getVelYAbs() : boost.getVelYAbs());
     }
 
-    public void addInput_mario(Mario mario, double remainingTime) {
-        // Create main structure
-        SoarMemObj ilTree = new SoarMemObj("root", SoarValueType.OBJECT),
-                marioObj = new SoarMemObj("mario", SoarValueType.OBJECT),
-                marioBody = new SoarMemObj("body", SoarValueType.OBJECT),
-                marioHud = new SoarMemObj("hud", SoarValueType.OBJECT);
-        ilTree.add_aug("mario", marioObj);
-        marioObj.add_aug("body", marioBody);
-        marioObj.add_aug("hud", marioHud);
+    private void addEndFlagIDAugs(Identifier flagId, EndFlag endFlag) {
+        Mario mario = engine.getMapManager().getMario();
+
+        flagId.CreateIntWME("x-absolute", (int)endFlag.getX());
+        flagId.CreateIntWME("y-absolute", (int)endFlag.getY());
+        flagId.CreateIntWME("x-relative", (int)mario.getRelativeX(endFlag.getX()));
+        flagId.CreateIntWME("y-relative", (int)mario.getRelativeY(endFlag.getY()));
+        //flagId.CreateIntWME("height", (int)endFlag.getBounds().getHeight());
+    }
+
+    private void cleanMarioWMEs() {
+        ArrayList<WMElement> deleteList = new ArrayList<WMElement>(11);
+        for (int i=0, iLim=marioHud.GetNumberChildren(); i<iLim; ++i) {
+            deleteList.add(marioHud.GetChild(i));
+        }
+        for (int i=0, iLim=marioBody.GetNumberChildren(); i<iLim; ++i) {
+            deleteList.add(marioBody.GetChild(i));
+        }
+        for (WMElement wme : deleteList) {
+            wme.DestroyWME();
+        }
+    }
+
+    public void updateInput_mario(Mario mario, double remainingTime) {
+        // First clear the old values
+        cleanMarioWMEs();
 
         // Add HUD values
-        marioHud.add_aug("time", remainingTime);
-        marioHud.add_aug("points", mario.getPoints());
-        marioHud.add_aug("lives", mario.getRemainingLives());
+        marioHud.CreateIntWME("time", (int)remainingTime);
+        marioHud.CreateIntWME("points", mario.getPoints());
+        marioHud.CreateIntWME("lives", mario.getRemainingLives());
 
-        // Add body values
-        marioBody.add_aug("x-absolute", (int)mario.getX());
-        marioBody.add_aug("y-absolute", (int)mario.getY());
-        marioBody.add_aug("x-speed", mario.getVelX());
-        marioBody.add_aug("y-speed", mario.getVelYAbs() * (mario.isFalling() ? 1.0 : -1.0));
-        marioBody.add_aug("is-super", (mario.isSuper() ? "true" : "false"));
-        marioBody.add_aug("is-fire", (mario.getMarioForm().isFire() ? "true" : "false"));
-        marioBody.add_aug("height", mario.getDimension().height);
-        marioBody.add_aug("width", mario.getDimension().width);
-
-        // Add this tree to the input link
-        addInputWMEs(ilTree);
+        // Add Body values
+        marioBody.CreateIntWME("x-absolute", (int)mario.getX());
+        marioBody.CreateIntWME("y-absolute", (int)mario.getY());
+        marioBody.CreateFloatWME("x-speed", mario.getVelX());
+        marioBody.CreateFloatWME("y-speed", mario.getVelYAbs() * (mario.isFalling() ? 1.0 : -1.0));
+        marioBody.CreateStringWME("is-super", (mario.isSuper() ? "true" : "false"));
+        marioBody.CreateStringWME("is-fire", (mario.getMarioForm().isFire() ? "true" : "false"));
+        marioBody.CreateIntWME("height", mario.getDimension().height);
+        marioBody.CreateIntWME("width", mario.getDimension().width);
     }
 
-    public void addInput_touching(ArrayList<GameObject> marioCollidersTop, ArrayList<GameObject> marioCollidersBottom,
+    public void updateInput_touching(ArrayList<GameObject> marioCollidersTop, ArrayList<GameObject> marioCollidersBottom,
             ArrayList<GameObject> marioCollidersLeft, ArrayList<GameObject> marioCollidersRight) {
         addInput_touching_named("touching-top", marioCollidersTop);
         addInput_touching_named("touching-bottom", marioCollidersBottom);
         addInput_touching_named("touching-left", marioCollidersLeft);
         addInput_touching_named("touching-right", marioCollidersRight);
-
-        kernel.CommitAll();
     }
 
     private void addInput_touching_named(String attrName, ArrayList<GameObject> colliderList) {
-
-        // Create main structure
-        SoarMemObj ilTree = new SoarMemObj("root", SoarValueType.OBJECT),
-                topObj = new SoarMemObj(attrName, SoarValueType.OBJECT);
-        ilTree.add_aug(attrName, topObj);
-
-        // Add each brick
+        // Add each touched object
         for (GameObject obj : colliderList) {
-            if (obj instanceof Enemy) {
-                topObj.add_aug("enemy", makeEnemySoarObj((Enemy) obj));
-            }
-            else if (obj instanceof Brick) {
-                topObj.add_aug("brick", makeBrickSoarObj((Brick) obj));
+            Identifier id = objId_map.get(obj.hashCode());
+            if (id != null) {
+                marioBody.CreateSharedIdWME(attrName, id);
             }
         }
-
-        addInputWMEs(ilTree);
     }
 
-    public void addInput_enemies(ArrayList<Enemy> enemyList) {
+    /**
+     * Get the Identifier object needed to refresh input for the game object represented by the given hash.
+     * If the object is already on the input-link, returns that Identifier after cleaning it of children WMEs.
+     * Else, make a new Identifier, attached using the given root and attr name, and return that new Identifier.
+     * @param obj_hash The hash of the game object that is to be added to the Soar agent's input-link
+     * @param root The existing Identifier that the new Identifier should be added under, should it need to be added
+     * @param attr The attribute name to use when adding the new Identifier, should it need to be added
+     * @return
+     */
+    private Identifier getOrMakeCleanInputObjId(Integer obj_hash, Identifier root, String attr) {
+        Identifier retvalId;
+
+        if (!objId_map.containsKey(obj_hash)) {
+            // It isn't on the input-link already. Create it.
+            retvalId = root.CreateIdWME(attr);
+            objId_map.put(obj_hash, retvalId);
+        }
+        else {
+            // It is on the input-link already. Clean it for an update.
+            retvalId = objId_map.get(obj_hash);
+            cleanIDChildren(retvalId);
+        }
+
+        // Record that this input object was used this cycle
+        refreshedObjectHashes.add(obj_hash);
+
+        return retvalId;
+    }
+
+    public void updateInput_enemies(ArrayList<Enemy> enemyList) {
         if (enemyList.size() == 0)
             return;
             
         // Reference mario for relative coordinates
         Map map = engine.getMapManager().getMap();
 
-        // Create main structure
-        SoarMemObj ilTree = new SoarMemObj("root", SoarValueType.OBJECT),
-                enemiesObj = new SoarMemObj("enemies", SoarValueType.OBJECT);
-        ilTree.add_aug("enemies", enemiesObj);
-
-        // Add each brick
+        // Add each enemy
         for (Enemy enemy : enemyList) {
             if (!map.isWithinCamera(enemy))
                 continue;
 
-            SoarMemObj enemyObj = makeEnemySoarObj(enemy);
-            enemiesObj.add_aug("enemy", enemyObj);
+            Integer hash = enemy.hashCode();
+            // Get the existing object ID or create it if it doesn't yet exist
+            Identifier enemyId = getOrMakeCleanInputObjId(hash, enemiesRoot, "enemy");
+            // Add the object augmentations
+            addEnemyIDAugs(enemyId, enemy);
         }
-
-        // Add this tree to the input link
-        addInputWMEs(ilTree);
     }
 
-    public void addInput_bricks(ArrayList<Brick> brickList) {
+    /**
+     * Use the given list of Brick objects as input this cycle.
+     * If any of the given bricks are already on the input-link, update them.
+     * @param brickList The list of Bricks to use for the input-link this cycle
+     */
+    public void updateInput_bricks(ArrayList<Brick> brickList) {
         // Reference mario for relative coordinates
-        Mario mario = engine.getMapManager().getMario();
+        //Mario mario = engine.getMapManager().getMario();
         Map map = engine.getMapManager().getMap();
-
-        // Create main structure
-        SoarMemObj ilTree = new SoarMemObj("root", SoarValueType.OBJECT),
-                enemiesObj = new SoarMemObj("bricks", SoarValueType.OBJECT);
-        ilTree.add_aug("bricks", enemiesObj);
 
         // Add each brick
         for (Brick b : brickList) {
             if (!map.isWithinCamera(b))
                 continue;
 
-            int relX = (int)mario.getRelativeX(b.getX());
-            int relY = (int)mario.getRelativeY(b.getY());
+            /*int relX = Math.abs((int)mario.getRelativeX(b.getX()));
+            int relY = Math.abs((int)mario.getRelativeY(b.getY()));
             // Skip bricks that are farther than 4 blocks away
             if (relX > 48*4 || relY > 48*4)
-                continue;
+                continue;*/
 
-            SoarMemObj brick = makeBrickSoarObj(b);
-
-            // Attach this brick to the tree
-            enemiesObj.add_aug("brick", brick);
+            Integer hash = b.hashCode();
+            // Get the existing object ID or create it if it doesn't yet exist
+            Identifier brickId = getOrMakeCleanInputObjId(hash, bricksRoot, "brick");
+            // Add the object augmentations
+            addBrickIDAugs(brickId, b);
         }
-
-        // Add this tree to the input link
-        addInputWMEs(ilTree);
     }
 
-    public void addInput_powerups(ArrayList<BoostItem> pupsList) {
+    public void updateInput_powerups(ArrayList<BoostItem> pupsList) {
         if (pupsList.size() == 0)
             return;
 
-        // Reference mario for relative coordinates
+        // Reference Mario for relative coordinates
         Map map = engine.getMapManager().getMap();
 
-        // Create main structure
-        SoarMemObj ilTree = new SoarMemObj("root", SoarValueType.OBJECT),
-                pupsObj = new SoarMemObj("power-ups", SoarValueType.OBJECT);
-        ilTree.add_aug("power-ups", pupsObj);
-
-        // Add each brick
+        // Add each power-up
         for (BoostItem pup : pupsList) {
             if (!map.isWithinCamera(pup))
                 continue;
 
-            SoarMemObj pupObj = makeBoostSoarObj(pup);
-
-            // The returned object will be null if the BoostItem is not one of the valid classes
-            if (pupObj == null)
+            String pupType = getPowerupType(pup);
+            // The returned String will be null if the BoostItem is not one of the valid classes
+            if (pupType == null)
                 continue;
             
-            pupsObj.add_aug("power-up", pupObj);
+            Integer hash = pup.hashCode();
+            // Get the existing object ID or create it if it doesn't yet exist
+            Identifier pupId = getOrMakeCleanInputObjId(hash, specialRoot, "power-up");
+            // Add the object augmentations
+            addBoostIDAugs(pupId, pup, pupType);
         }
-
-        // Add this tree to the input link
-        addInputWMEs(ilTree);
     }
 
-    public void addInput_specials(GameObject obj) { //ArrayList<GameObject> objList) {
+    public void updateInput_endFlag(EndFlag flagObj) {
         // Reference mario for relative coordinates
         Map map = engine.getMapManager().getMap();
 
-        // Create main structure
-        SoarMemObj ilTree = new SoarMemObj("root", SoarValueType.OBJECT),
-                specialsObj = new SoarMemObj("special", SoarValueType.OBJECT);
-        ilTree.add_aug("special", specialsObj);
+        if (!map.isWithinCamera(flagObj))
+            return;
 
-        // Add each brick
-        //for (GameObject obj : objList) {
-            if (!map.isWithinCamera(obj))
-                return; //continue;
-
-            SoarMemObj endObj;
-            if (obj instanceof EndFlag) {
-                endObj = makeEndFlagSoarObj((EndFlag)obj);
-                specialsObj.add_aug("end-flag", endObj);
-            }
-        //}
-
-        // Add this tree to the input link
-        addInputWMEs(ilTree);
+        Integer hash = flagObj.hashCode();
+        // Get the existing object ID or create it if it doesn't yet exist
+        Identifier flagId = getOrMakeCleanInputObjId(hash, specialRoot, "end-flag");
+        // Add the object augmentations
+        addEndFlagIDAugs(flagId, flagObj);
     }
 
+    public void removeUnusedIds() {
+        ArrayList<Integer> deleteList = new ArrayList<Integer>(30);
+        for (Integer hash : objId_map.keySet()) {
+            if (!refreshedObjectHashes.contains(hash)) {
+                deleteList.add(hash);
+            }
+        }
+        for (Integer hash : deleteList) {
+            // First remove the ID from the input-link
+            objId_map.get(hash).DestroyWME();
+            // Then remove the record of the ID
+            objId_map.remove(hash);
+        }
+        // Clean the refresh list
+        refreshedObjectHashes.clear();
+        // Refresh the agent's I/O
+        agent.Commit();
+    }
+    
     @Override
     protected void user_outputEvent(WMElement output) {
         // Make vars to track what is pressed in this output cluster
@@ -483,5 +542,5 @@ public class MarioSoarLink extends SoarLinkAbstract {
         // If the agent code interrupts the agent, also pause the game
         engine.pauseGame("AGENT INTERRUPTED");
     }
-    
+
 }

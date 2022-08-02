@@ -87,18 +87,18 @@ public class MapManager {
         if (soarLink == null)
             return;
 
-        // Clear old input
-        soarLink.cleanInputWMEs();
-
         // Update new input
-        soarLink.addInput_mario(map.getMario(), map.getRemainingTime());
-        soarLink.addInput_touching(marioCollidersTop, marioCollidersBottom, marioCollidersLeft, marioCollidersRight);
-        soarLink.addInput_enemies(map.getEnemies());
-        soarLink.addInput_bricks(map.getAllBricks());
-        soarLink.addInput_powerups(map.getRevealedBoosts());
-        soarLink.addInput_specials(map.getEndPoint());
+        soarLink.updateInput_mario(map.getMario(), map.getRemainingTime());
+        soarLink.updateInput_enemies(map.getEnemies());
+        soarLink.updateInput_bricks(map.getAllBricks());
+        soarLink.updateInput_powerups(map.getRevealedBoosts());
+        soarLink.updateInput_endFlag(map.getEndPoint());
 
-        soarLink.getAgent().Commit();
+        // AFTER other objects have been made/updated, link those objects where collisions have occured
+        soarLink.updateInput_touching(marioCollidersTop, marioCollidersBottom, marioCollidersLeft, marioCollidersRight);
+        
+        // Clean up leftover input objects from the previous cycle that aren't needed anymore
+        soarLink.removeUnusedIds();
     }
 
     public void resetCurrentMap(GameEngine engine) {

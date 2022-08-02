@@ -6,26 +6,25 @@ sp {elaborate*move-right
         ^output-link <ol>)
     (<il> ^mario.body <m-body>)
     (<m-body> ^width <w>
-            ^x-absolute <x>)
-    -{(<il> ^bricks.brick <b>)
-      (<b> ^x-relative {> 0 < 400}
-           ^y-relative {> -100 < 100>})}
-    -->
-    (<ol> ^key-right true
-        ^message |RIGHT!|)}
-
-
-sp {elaborate*jump
-    (state <s> ^io <io>)
-    (<io> ^input-link <il>
-        ^output-link <ol>)
-    (<il> ^mario.body <m-body>)
-    (<m-body> ^width <w>
             ^x-absolute <x>
-            ^y-speed < 0.1)
-    (<il> ^bricks.brick <b>)
-    (<b> ^x-relative {> 0 < 400}
-        ^y-relative {> -100 < 100>})
+            -^touching-right <any>)
     -->
-    (<ol> ^key-A true
-        ^message |Jumping for joy!|)}
+    (<ol> ^key-press <kp-new>
+        ^message <m-new>)
+    (<kp-new> ^value right)
+    (<m-new> ^value |RIGHT!|)}
+
+
+# sp {elaborate*jump
+#     (state <s> ^io <io>)
+#     (<io> ^input-link <il>
+#         ^output-link <ol>)
+#     (<il> ^mario.body <m-body>)
+#     (<m-body> ^width <w>
+#             ^x-absolute <x>
+#             ^y-speed < 0.1)
+#     -->
+#     (<ol> ^key-press <kp-new>
+#         ^message <m-new>)
+#     (<kp-new> ^value A)
+#     (<m-new> ^value |Jumping for joy!|)}

@@ -1,7 +1,7 @@
 ### NOTE: All coordinates refer to the top-left point on the object in the game window.
 
 input-link
-    ^Mario                      # Mario's knowledge of the game state and his own state 
+    ^mario                      # Mario's knowledge of the game state and his own state 
         ^hud                    # The collection of game state information
             ^time INT           # The amount of time left on the clock
             ^points INT         # The number of points earned so far
@@ -35,7 +35,7 @@ input-link
             ^x-relative INT     # The x coordinate of this object relative to Mario's location
             ^y-relative INT     # The y coordinate of this object relative to Mario's location
     
-    ^power-ups                  # These are power-up objects that Mario sees on the screen
+    ^special                    # These are power-up objects that Mario sees on the screen
         ^power-up               # This represents an individual power-up
             ^type STRING        # Values can be one of: << super-mushroom fire-flower one-up-mushroom >>
             ^x-absolute INT     # The global x coordinate of this object
@@ -44,8 +44,6 @@ input-link
             ^y-relative INT     # The y coordinate of this object relative to Mario's location
             ^x-speed FLOAT      # The horizontal speed of this object
             ^y-speed FLOAT      # The vertical speed of this object
-    
-    ^special
         ^end-flag               # The flag on the top of the pole that Mario pulls down to win a level (coordinates refer to the flag itself on the pole)
             ^x-absolute INT     # The global x coordinate of this object
             ^y-absolute INT     # The global y coordinate of this object
