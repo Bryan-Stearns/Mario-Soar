@@ -15,5 +15,6 @@ public enum ButtonAction {
     GO_UP,
     GO_DOWN,
     GO_TO_START_SCREEN,
+    TOGGLE_DEBUG,
     NO_ACTION
 }

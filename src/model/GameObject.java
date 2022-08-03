@@ -3,6 +3,8 @@ package model;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+import manager.Globals;
+
 public abstract class GameObject {
 
     protected double x, y;
@@ -39,7 +41,7 @@ public abstract class GameObject {
     public void draw(Graphics g) {
         BufferedImage style = getStyle();
 
-        if(style != null){
+        if (style != null) {
             g.drawImage(style, (int)x, (int)y, null);
         }
 
@@ -53,10 +55,13 @@ public abstract class GameObject {
         g2.draw(getLeftBounds());*/
         //g2.draw(getBounds());
 
-        // for debugging: show coordinates
-        /*Graphics2D g2 = (Graphics2D)g;
-        g2.setColor(Color.WHITE);
-        g2.drawString(String.format("%d,%d", (int)x, (int)y), (int)x, (int)y);*/
+        // If in debugging mode: show coordinates
+        if (Globals.debugMode) {
+            Graphics2D g2 = (Graphics2D)g;
+            g2.setColor(Color.WHITE);
+            g2.setFont(g2.getFont().deriveFont(9f));
+            g2.drawString(String.format("%d,%d", (int)x, (int)y), (int)x, (int)y);
+        }
     }
 
     public void updateLocation() {

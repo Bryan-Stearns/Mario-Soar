@@ -52,6 +52,9 @@ public class InputManager implements KeyListener, MouseListener {
             if (keyCode == KeyEvent.VK_ESCAPE) {
                 currentAction = ButtonAction.PAUSE_RESUME;
             }
+            else if (keyCode == KeyEvent.VK_F1) {
+                currentAction = ButtonAction.TOGGLE_DEBUG;
+            }
         }
         else if (status == GameStatus.PAUSED) {
             if (keyCode == KeyEvent.VK_ESCAPE) {
@@ -59,6 +62,9 @@ public class InputManager implements KeyListener, MouseListener {
             }
             else if (keyCode == KeyEvent.VK_BACK_SPACE) {
                 currentAction = ButtonAction.GO_TO_START_SCREEN;
+            }
+            else if (keyCode == KeyEvent.VK_F1) {
+                currentAction = ButtonAction.TOGGLE_DEBUG;
             }
         }
 

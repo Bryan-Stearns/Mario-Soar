@@ -39,7 +39,12 @@ public class GameEngine implements Runnable {
     private ArrayList<EventTimer> eventTimers = null;        // Can be used to add delayed custom events
     private long gameTickTime = 0;
 
+    private Globals globals;
+
     private GameEngine(String agentPath, boolean openDebugger) {
+        globals = new Globals();
+        Globals.gameEngine = this;
+
         if (agentPath != null) {
             this.soarAgentPath = agentPath;
             this.soarControlled = true;
@@ -370,6 +375,8 @@ public class GameEngine implements Runnable {
                 mapManager.fire(this);
             } else if (input == ButtonAction.PAUSE_RESUME) {
                 pauseGame(null);
+            } else if (input == ButtonAction.TOGGLE_DEBUG) {
+                Globals.debugMode = !Globals.debugMode;
             }
 
         } else if (gameStatus == GameStatus.PAUSED) {
@@ -382,6 +389,9 @@ public class GameEngine implements Runnable {
                 }
                 reset();
                 //setGameStatus(GameStatus.START_SCREEN);
+            }
+            else if (input == ButtonAction.TOGGLE_DEBUG) {
+                Globals.debugMode = !Globals.debugMode;
             }
         } else if(gameStatus == GameStatus.GAME_OVER && input == ButtonAction.GO_TO_START_SCREEN){
             reset();
