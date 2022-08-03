@@ -1,14 +1,16 @@
 # Super Mario Bros.
 
 Classic Super Mario Bros. game implemented with Java, modified to interface with Soar cognitive architecture agents for the sake of testing and programmer training. 
-Original source code for the java game at https://github.com/ahmetcandiroglu/Super-Mario-Bros
+Original source code for the java game at https://github.com/ahmetcandiroglu/Super-Mario-Bros. 
+Note that this is not as full-featured as the original Super Mario Bros. game. It is only a simple imitation that allows easy sandbox agent development.
 
-## About game
+## Using with Soar
 
-You can visit [wikipedia page](https://en.wikipedia.org/wiki/Super_Mario_Bros.) or [Super Mario wiki page](https://www.mariowiki.com/Super_Mario_Bros.) for detailed information about the game.
-
-## Built With
-* [Java](https://www.java.com/)
+* Run the program with no command line arguments to play the game yourself.
+* Run the program with a path to a .soar agent file to have that Soar agent play the game.
+    * (See the docs/agent-io-spec.txt file to see the input/output structures that your Soar agent can use.)
+* Run the program with the "--open-debugger" flag as a second argument to automatically open a Soar Java Debugger with your Soar agent.
+    * (Press F1 while the game is running to toggle debug mode, which shows object coordinates on the screen. You can compare these with agent input structures.)
 
 ## Game code modifications by Bryan Stearns
 
@@ -32,9 +34,10 @@ You can visit [wikipedia page](https://en.wikipedia.org/wiki/Super_Mario_Bros.) 
 * Added walking animation to Goombas
 * Made Mario disappear into castle at level end
 * Turned off collision detection while Mario shrinks
-* Made Mario y value adjust when he shrinks
+* Made Mario y-value adjust when he shrinks
 * Fixed bug where camera.shaking would never turn false once made true
 * Made enemies reverse x-direction when hitting Mario and making him shrink
+* Added debug command F1 to show object coordinates
 
 ## In-game Screens
 
