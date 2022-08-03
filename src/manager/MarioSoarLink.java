@@ -70,11 +70,6 @@ public class MarioSoarLink extends SoarLinkAbstract {
         objId_map = new HashMap<Integer, Identifier>(40);
         refreshedObjectHashes = new ArrayList<Integer>(40);
     }
-
-    /** TODO
-     * Add "^touching-... <id>" augs to bricks touching each other
-     * // Add "^touching-bottom <id>" augs to enemies touching bricks
-     */
     
     public boolean getWasError() { return !status; }
     public String getErrorMessage() { return error_message; }
@@ -162,7 +157,12 @@ public class MarioSoarLink extends SoarLinkAbstract {
         brickId.CreateIntWME("y-absolute", (int)brick.getY());
         brickId.CreateIntWME("x-relative", (int)mario.getRelativeX(brick.getX()));
         brickId.CreateIntWME("y-relative", (int)mario.getRelativeY(brick.getY()));
+    }
 
+    private Identifier addTouchingAug(Brick brickFrom, String attrName, Brick brickTo) {
+        Identifier idFrom = getInputObjId(brickFrom.hashCode()),
+                   idTo = getInputObjId(brickTo.hashCode());
+        return idFrom.CreateSharedIdWME(attrName, idTo);
     }
 
     private void addEnemyIDAugs(Identifier enemyId, Enemy enemy) {
@@ -295,6 +295,18 @@ public class MarioSoarLink extends SoarLinkAbstract {
         return retvalId;
     }
 
+    private Identifier getInputObjId(Integer obj_hash) {
+
+        if (!objId_map.containsKey(obj_hash)) {
+            // It isn't on the input-link already.
+            return null;
+        }
+        else {
+            // It is on the input-link already. Return it.
+            return objId_map.get(obj_hash);
+        }
+    }
+
     public void updateInput_enemies(ArrayList<Enemy> enemyList) {
         if (enemyList.size() == 0)
             return;
@@ -325,10 +337,17 @@ public class MarioSoarLink extends SoarLinkAbstract {
         //Mario mario = engine.getMapManager().getMario();
         Map map = engine.getMapManager().getMap();
 
-        // Add each brick
-        for (Brick b : brickList) {
+        boolean[] inCameraMask = new boolean[brickList.size()]; // Reminder: Java auto-initializes all values to false
+
+        // Add each brick if it is in the camera view
+        for (int i=0, iLim=brickList.size(); i<iLim; ++i) {
+            Brick b = brickList.get(i);
+
             if (!map.isWithinCamera(b))
                 continue;
+
+            // Mark for later that this brick is within the camera view
+            inCameraMask[i] = true;
 
             /*int relX = Math.abs((int)mario.getRelativeX(b.getX()));
             int relY = Math.abs((int)mario.getRelativeY(b.getY()));
@@ -341,6 +360,59 @@ public class MarioSoarLink extends SoarLinkAbstract {
             Identifier brickId = getOrMakeCleanInputObjId(hash, bricksRoot, "brick");
             // Add the object augmentations
             addBrickIDAugs(brickId, b);
+        }
+
+        // Go through the list again and mark which bricks are touching
+        for (int i=0, iLim=brickList.size()-1; i<iLim; ++i) {
+            if (!inCameraMask[i]) {
+                continue;
+            }
+            Brick b1 = brickList.get(i);
+
+            // Ignore pipes for touch checks
+            if (b1.getType().equals("pipe")) {
+                continue;
+            }
+
+            // Compare with all later bricks in the map view for adjacency
+            for (int j=i+1, jLim=brickList.size(); j<jLim; ++j) {
+                if (!inCameraMask[j]) {
+                    continue;
+                }
+                Brick b2 = brickList.get(j);
+                
+                // Ignore pipes for touch checks
+                if (b2.getType().equals("pipe")) {
+                    continue;
+                }
+
+                // Test if they have the same y
+                if (b1.getY() == b2.getY()) {
+                    int xDiff = (int)(b1.getX() - b2.getX());
+                    // If they are only brick.dimension.width=48 apart in x, they are touching
+                    if (xDiff <= 48 && xDiff > 0) {
+                        addTouchingAug(b1, "touching-left", b2);
+                        addTouchingAug(b2, "touching-right", b1);
+                    }
+                    else if (xDiff >= -48 && xDiff < 0) {
+                        addTouchingAug(b1, "touching-right", b2);
+                        addTouchingAug(b2, "touching-left", b1);
+                    }
+                }
+                // Test if they have the same x
+                else if (b1.getX() == b2.getX()) {
+                    int yDiff = (int)(b1.getY() - b2.getY());
+                    // If they are only brick.dimension.height=48 apart in y, they are touching
+                    if (yDiff <= 48 && yDiff > 0) {
+                        addTouchingAug(b1, "touching-top", b2);
+                        addTouchingAug(b2, "touching-bottom", b1);
+                    }
+                    else if (yDiff >= -48 && yDiff < 0) {
+                        addTouchingAug(b1, "touching-bottom", b2);
+                        addTouchingAug(b2, "touching-top", b1);
+                    }
+                }
+            }
         }
     }
 

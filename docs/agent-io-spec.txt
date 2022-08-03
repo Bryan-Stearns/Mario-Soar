@@ -1,63 +1,62 @@
 ### NOTE: All coordinates refer to the top-left point on the object in the game window.
 
 input-link
-    ^mario                      # Mario's knowledge of the game state and his own state 
-        ^hud                    # The collection of game state information
-            ^time INT           # The amount of time left on the clock
-            ^points INT         # The number of points earned so far
-            ^lives INT          # The number of lives Mario has left
-        ^body                   # The collection of information about Mario himself
-            ^x-absolute INT     # The global x coordinate of this object
-            ^y-absolute INT     # The global y coordinate of this object
-            ^x-speed FLOAT      # The horizontal speed of this object
-            ^y-speed FLOAT      # The vertical speed of this object
-            ^is-super STRING    # Whether Mario is super-sized. Values can be one of: << true false >>
-            ^is-fire STRING     # Whether Mario can shoot fireballs. Values can be one of: << true false >>
-            ^height INT         # The height (in pixels) of Mario
-            ^width INT          # The width (in pixels) of Mario
+    ^mario                          # Mario's knowledge of the game state and his own state 
+        ^hud                        # The collection of game state information
+            ^time INT               # The amount of time left on the clock
+            ^points INT             # The number of points earned so far
+            ^lives INT              # The number of lives Mario has left
+        ^body                       # The collection of information about Mario himself
+            ^x-absolute INT         # The global x coordinate of this object
+            ^y-absolute INT         # The global y coordinate of this object
+            ^x-speed FLOAT          # The horizontal speed of this object
+            ^y-speed FLOAT          # The vertical speed of this object
+            ^is-super STRING        # Whether Mario is super-sized. Values can be one of: << true false >>
+            ^is-fire STRING         # Whether Mario can shoot fireballs. Values can be one of: << true false >>
+            ^height INT             # The height (in pixels) of Mario
+            ^width INT              # The width (in pixels) of Mario
+            ^touching-top <id>      # A brick or enemy that Mario is touching above him
+            ^touching-bottom <id>   # A brick or enemy that Mario is touching below him
+            ^touching-left <id>     # A brick or enemy that Mario is touching to his left
+            ^touching-right <id>    # A brick or enemy that Mario is touching to his right
     
-    ^enemies                    # These are enemies that Mario sees on the screen
-        ^enemy                  # This represents an individual enemy object
-            ^type STRING        # Values can be one of: << goomba koopatroopa >>
-            ^x-absolute INT     # The global x coordinate of this object
-            ^y-absolute INT     # The global y coordinate of this object
-            ^x-relative INT     # The x coordinate of this object relative to Mario's location
-            ^y-relative INT     # The y coordinate of this object relative to Mario's location
-            ^x-speed FLOAT      # The horizontal speed of this object
-            ^y-speed FLOAT      # The vertical speed of this object
+    ^enemies                        # These are enemies that Mario sees on the screen
+        ^enemy                      # This represents an individual enemy object
+            ^type STRING            # Values can be one of: << goomba koopatroopa >>
+            ^x-absolute INT         # The global x coordinate of this object
+            ^y-absolute INT         # The global y coordinate of this object
+            ^x-relative INT         # The x coordinate of this object relative to Mario's location
+            ^y-relative INT         # The y coordinate of this object relative to Mario's location
+            ^x-speed FLOAT          # The horizontal speed of this object
+            ^y-speed FLOAT          # The vertical speed of this object
     
-    ^bricks                     # These are bricks that Mario sees on the screen (consider pipes to be a special type of brick)
-        ^brick                  # This represents an individual brick object
-            ^type STRING        # Values can be one of: << ordinary ground surprise pipe >>
-            ^breakable STRING   # Whether Mario can break this by hitting it from below while super-sized. Values can be one of: << true false >>
-            ^x-absolute INT     # The global x coordinate of this object
-            ^y-absolute INT     # The global y coordinate of this object
-            ^x-relative INT     # The x coordinate of this object relative to Mario's location
-            ^y-relative INT     # The y coordinate of this object relative to Mario's location
+    ^bricks                         # These are bricks that Mario sees on the screen (consider pipes to be a special type of brick)
+        ^brick                      # This represents an individual brick object
+            ^type STRING            # Values can be one of: << ordinary ground surprise pipe >>
+            ^breakable STRING       # Whether Mario can break this by hitting it from below while super-sized. Values can be one of: << true false >>
+            ^x-absolute INT         # The global x coordinate of this object
+            ^y-absolute INT         # The global y coordinate of this object
+            ^x-relative INT         # The x coordinate of this object relative to Mario's location
+            ^y-relative INT         # The y coordinate of this object relative to Mario's location
+            ^touching-top <id>      # A brick that this brick is touching above it
+            ^touching-bottom <id>   # A brick that this brick is touching below it
+            ^touching-left <id>     # A brick that this brick is touching to its left
+            ^touching-right <id>    # A brick that this brick is touching to its right
     
-    ^special                    # These are power-up objects that Mario sees on the screen
-        ^power-up               # This represents an individual power-up
-            ^type STRING        # Values can be one of: << super-mushroom fire-flower one-up-mushroom >>
-            ^x-absolute INT     # The global x coordinate of this object
-            ^y-absolute INT     # The global y coordinate of this object
-            ^x-relative INT     # The x coordinate of this object relative to Mario's location
-            ^y-relative INT     # The y coordinate of this object relative to Mario's location
-            ^x-speed FLOAT      # The horizontal speed of this object
-            ^y-speed FLOAT      # The vertical speed of this object
-        ^end-flag               # The flag on the top of the pole that Mario pulls down to win a level (coordinates refer to the flag itself on the pole)
-            ^x-absolute INT     # The global x coordinate of this object
-            ^y-absolute INT     # The global y coordinate of this object
-            ^x-relative INT     # The x coordinate of this object relative to Mario's location
-            ^y-relative INT     # The y coordinate of this object relative to Mario's location
-    
-    ^touching-top               # A collection of objects that Mario is touching above him
-        ^...                    #  (These will be the same objects defined under any of the other groups)
-    ^touching-bottom            # A collection of objects that Mario is touching below him
-        ^...                    #  (These will be the same objects defined under any of the other groups)
-    ^touching-right             # A collection of objects that Mario is touching to his right
-        ^...                    #  (These will be the same objects defined under any of the other groups)
-    ^touching-left              # A collection of objects that Mario is touching to his left
-        ^...                    #  (These will be the same objects defined under any of the other groups)
+    ^special                        # These are power-up objects that Mario sees on the screen
+        ^power-up                   # This represents an individual power-up
+            ^type STRING            # Values can be one of: << super-mushroom fire-flower one-up-mushroom >>
+            ^x-absolute INT         # The global x coordinate of this object
+            ^y-absolute INT         # The global y coordinate of this object
+            ^x-relative INT         # The x coordinate of this object relative to Mario's location
+            ^y-relative INT         # The y coordinate of this object relative to Mario's location
+            ^x-speed FLOAT          # The horizontal speed of this object
+            ^y-speed FLOAT          # The vertical speed of this object
+        ^end-flag                   # The flag on the top of the pole that Mario pulls down to win a level (coordinates refer to the flag itself on the pole)
+            ^x-absolute INT         # The global x coordinate of this object
+            ^y-absolute INT         # The global y coordinate of this object
+            ^x-relative INT         # The x coordinate of this object relative to Mario's location
+            ^y-relative INT         # The y coordinate of this object relative to Mario's location
     
 
 output-link
