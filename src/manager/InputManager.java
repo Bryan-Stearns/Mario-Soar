@@ -34,7 +34,7 @@ public class InputManager implements KeyListener, MouseListener {
             }
         }
         else if (status == GameStatus.RUNNING) {
-            if (!engine.isSoarControlled()) {
+            if (!engine.isSoarControlled() || Globals.debugMode) {
                 if (keyCode == KeyEvent.VK_UP) {
                     currentAction = ButtonAction.JUMP;
                 }

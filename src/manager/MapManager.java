@@ -95,7 +95,7 @@ public class MapManager {
         soarLink.updateInput_endFlag(map.getEndPoint());
 
         // AFTER other objects have been made/updated, link those objects where collisions have occured
-        soarLink.updateInput_touching(marioCollidersTop, marioCollidersBottom, marioCollidersLeft, marioCollidersRight);
+        soarLink.addInput_touching(marioCollidersTop, marioCollidersBottom, marioCollidersLeft, marioCollidersRight);
         
         // Clean up leftover input objects from the previous cycle that aren't needed anymore
         soarLink.removeUnusedIds();
