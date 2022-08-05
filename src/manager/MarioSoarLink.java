@@ -190,12 +190,13 @@ public class MarioSoarLink extends SoarLinkAbstract {
             type = "koopatroopa";
 
         enemyId.CreateStringWME("type", type);
-        enemyId.CreateIntWME("x-absolute", (int)enemy.getX());
-        enemyId.CreateIntWME("y-absolute", (int)enemy.getY());
-        enemyId.CreateIntWME("x-relative", (int)mario.getRelativeX(enemy.getX()));
-        enemyId.CreateIntWME("y-relative", (int)mario.getRelativeY(enemy.getY()));
+        enemyId.CreateIntWME("x", (int)enemy.getX());
+        enemyId.CreateIntWME("y", (int)enemy.getY());
+        enemyId.CreateIntWME("x-distance", Math.abs((int)mario.getRelativeX(enemy.getX())));
+        enemyId.CreateIntWME("y-distance", Math.abs((int)mario.getRelativeY(enemy.getY())));
         enemyId.CreateFloatWME("x-speed", enemy.getVelX());
         enemyId.CreateFloatWME("y-speed", enemy.isFalling() ? -enemy.getVelYAbs() : enemy.getVelYAbs());
+        enemyId.CreateFloatWME("distance", mario.getDistance(enemy.getX(), enemy.getY()));
     }
 
     private void refreshBrickIDAugs(Identifier brickId, Brick brick) {
@@ -204,17 +205,19 @@ public class MarioSoarLink extends SoarLinkAbstract {
             // If this is a blank slate, make the unchanging augmentations
             brickId.CreateStringWME("type", brick.getType());
             brickId.CreateStringWME("is-breakable", (brick.isBreakable() ? "true" : "false"));
-            brickId.CreateIntWME("x-absolute", (int)brick.getX());
-            brickId.CreateIntWME("y-absolute", (int)brick.getY());
+            brickId.CreateIntWME("x", (int)brick.getX());
+            brickId.CreateIntWME("y", (int)brick.getY());
         }
         else {
             // If this is an update to an existing object, remove the old volatile augmentations
-            cleanIdAttrs(brickId, "x-relative", 1);
-            cleanIdAttrs(brickId, "y-relative", 1);
+            cleanIdAttrs(brickId, "x-distance", 1);
+            cleanIdAttrs(brickId, "y-distance", 1);
+            cleanIdAttrs(brickId, "distance", 1);
         }
         // Add new content for the volatile augmentations
-        brickId.CreateIntWME("x-relative", (int)mario.getRelativeX(brick.getX()));
-        brickId.CreateIntWME("y-relative", (int)mario.getRelativeY(brick.getY()));
+        brickId.CreateIntWME("x-distance", Math.abs((int)mario.getRelativeX(brick.getX())));
+        brickId.CreateIntWME("y-distance", Math.abs((int)mario.getRelativeY(brick.getY())));
+        brickId.CreateFloatWME("distance", mario.getDistance(brick.getX(), brick.getY()));
     }
 
     private String getPowerupType(BoostItem boost) {
@@ -235,12 +238,13 @@ public class MarioSoarLink extends SoarLinkAbstract {
         cleanAllIdChildren(boostId);
 
         boostId.CreateStringWME("type", boostType);
-        boostId.CreateIntWME("x-absolute", (int)boost.getX());
-        boostId.CreateIntWME("y-absolute", (int)boost.getY());
-        boostId.CreateIntWME("x-relative", (int)mario.getRelativeX(boost.getX()));
-        boostId.CreateIntWME("y-relative", (int)mario.getRelativeY(boost.getY()));
+        boostId.CreateIntWME("x", (int)boost.getX());
+        boostId.CreateIntWME("y", (int)boost.getY());
+        boostId.CreateIntWME("x-distance", Math.abs((int)mario.getRelativeX(boost.getX())));
+        boostId.CreateIntWME("y-distance", Math.abs((int)mario.getRelativeY(boost.getY())));
         boostId.CreateFloatWME("x-speed", boost.getVelX());
         boostId.CreateFloatWME("y-speed", boost.isFalling() ? -boost.getVelYAbs() : boost.getVelYAbs());
+        boostId.CreateFloatWME("distance", mario.getDistance(boost.getX(), boost.getY()));
     }
 
     private void refreshEndFlagIDAugs(Identifier flagId, EndFlag endFlag) {
@@ -248,10 +252,11 @@ public class MarioSoarLink extends SoarLinkAbstract {
         // Just clean it all and remake it. Saves processing when the flag is moving.
         cleanAllIdChildren(flagId);
 
-        flagId.CreateIntWME("x-absolute", (int)endFlag.getX());
-        flagId.CreateIntWME("y-absolute", (int)endFlag.getY());
-        flagId.CreateIntWME("x-relative", (int)mario.getRelativeX(endFlag.getX()));
-        flagId.CreateIntWME("y-relative", (int)mario.getRelativeY(endFlag.getY()));
+        flagId.CreateIntWME("x", (int)endFlag.getX());
+        flagId.CreateIntWME("y", (int)endFlag.getY());
+        flagId.CreateIntWME("x-distance", Math.abs((int)mario.getRelativeX(endFlag.getX())));
+        flagId.CreateIntWME("y-distance", Math.abs((int)mario.getRelativeY(endFlag.getY())));
+        flagId.CreateFloatWME("distance", mario.getDistance(endFlag.getX(), endFlag.getY()));
         //flagId.CreateIntWME("height", (int)endFlag.getBounds().getHeight());
     }
 
@@ -319,8 +324,8 @@ public class MarioSoarLink extends SoarLinkAbstract {
         marioHud.CreateIntWME("lives", mario.getRemainingLives());
 
         // Add Body values
-        marioBody.CreateIntWME("x-absolute", (int)mario.getX());
-        marioBody.CreateIntWME("y-absolute", (int)mario.getY());
+        marioBody.CreateIntWME("x", (int)mario.getX());
+        marioBody.CreateIntWME("y", (int)mario.getY());
         marioBody.CreateFloatWME("x-speed", mario.getVelX());
         marioBody.CreateFloatWME("y-speed", mario.getVelYAbs() * (mario.isFalling() ? 1.0 : -1.0));
         marioBody.CreateStringWME("is-super", (mario.isSuper() ? "true" : "false"));

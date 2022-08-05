@@ -157,6 +157,18 @@ public class Mario extends GameObject{
         return (yOther - getY());
     }
 
+    /**
+     * Get the straight-line distance from Mario's coordinates to the given coordinates
+     * @param x The x coordinate of the target point
+     * @param y The y coordinate of the target point
+     * @return The distance from Mario's coordinate to the given coordinate
+     */
+    public double getDistance(double x, double y) {
+        double xDist = x-getX(),
+                yDist = y-getY();
+        return Math.sqrt((xDist*xDist)+(yDist*yDist));
+    }
+
     public boolean onTouchEnemy(GameEngine engine) {
 
         if (engine.getGameStatus() == GameStatus.RUNNING && !engine.isCameraShaking()) {

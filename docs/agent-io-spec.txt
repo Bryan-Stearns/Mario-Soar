@@ -7,8 +7,8 @@ input-link
             ^points INT             # The number of points earned so far
             ^lives INT              # The number of lives Mario has left
         ^body                       # The collection of information about Mario himself
-            ^x-absolute INT         # The global x coordinate of this object
-            ^y-absolute INT         # The global y coordinate of this object
+            ^x INT                  # The global x coordinate of this object
+            ^y INT                  # The global y coordinate of this object
             ^x-speed FLOAT          # The horizontal speed of this object
             ^y-speed FLOAT          # The vertical speed of this object
             ^is-super STRING        # Whether Mario is super-sized. Values can be one of: << true false >>
@@ -23,10 +23,11 @@ input-link
     ^enemies                        # These are enemies that Mario sees on the screen
         ^enemy                      # This represents an individual enemy object
             ^type STRING            # Values can be one of: << goomba koopatroopa >>
-            ^x-absolute INT         # The global x coordinate of this object
-            ^y-absolute INT         # The global y coordinate of this object
-            ^x-relative INT         # The x coordinate of this object relative to Mario's location
-            ^y-relative INT         # The y coordinate of this object relative to Mario's location
+            ^x INT                  # The global x coordinate of this object
+            ^y INT                  # The global y coordinate of this object
+            ^x-distance INT         # The absolute horizontal distance between Mario and this object
+            ^y-distance INT         # The absolute vertical distance between Mario and this object
+            ^distance FLOAT         # The straight-line distance from Mario to this object
             ^x-speed FLOAT          # The horizontal speed of this object
             ^y-speed FLOAT          # The vertical speed of this object
     
@@ -34,10 +35,11 @@ input-link
         ^brick                      # This represents an individual brick object
             ^type STRING            # Values can be one of: << ordinary ground surprise pipe >>
             ^breakable STRING       # Whether Mario can break this by hitting it from below while super-sized. Values can be one of: << true false >>
-            ^x-absolute INT         # The global x coordinate of this object
-            ^y-absolute INT         # The global y coordinate of this object
-            ^x-relative INT         # The x coordinate of this object relative to Mario's location
-            ^y-relative INT         # The y coordinate of this object relative to Mario's location
+            ^x INT                  # The global x coordinate of this object
+            ^y INT                  # The global y coordinate of this object
+            ^x-distance INT         # The absolute horizontal distance between Mario and this object
+            ^y-distance INT         # The absolute vertical distance between Mario and this object
+            ^distance FLOAT         # The straight-line distance from Mario to this object
             ^touching-top <id>      # A brick that this brick is touching above it
             ^touching-bottom <id>   # A brick that this brick is touching below it
             ^touching-left <id>     # A brick that this brick is touching to its left
@@ -46,24 +48,26 @@ input-link
     ^special                        # These are power-up objects that Mario sees on the screen
         ^power-up                   # This represents an individual power-up
             ^type STRING            # Values can be one of: << super-mushroom fire-flower one-up-mushroom >>
-            ^x-absolute INT         # The global x coordinate of this object
-            ^y-absolute INT         # The global y coordinate of this object
-            ^x-relative INT         # The x coordinate of this object relative to Mario's location
-            ^y-relative INT         # The y coordinate of this object relative to Mario's location
+            ^x INT                  # The global x coordinate of this object
+            ^y INT                  # The global y coordinate of this object
+            ^x-distance INT         # The absolute horizontal distance between Mario and this object
+            ^y-distance INT         # The absolute vertical distance between Mario and this object
+            ^distance FLOAT         # The straight-line distance from Mario to this object
             ^x-speed FLOAT          # The horizontal speed of this object
             ^y-speed FLOAT          # The vertical speed of this object
         ^end-flag                   # The flag on the top of the pole that Mario pulls down to win a level (coordinates refer to the flag itself on the pole)
-            ^x-absolute INT         # The global x coordinate of this object
-            ^y-absolute INT         # The global y coordinate of this object
-            ^x-relative INT         # The x coordinate of this object relative to Mario's location
-            ^y-relative INT         # The y coordinate of this object relative to Mario's location
+            ^x INT                  # The global x coordinate of this object
+            ^y INT                  # The global y coordinate of this object
+            ^x-distance INT         # The absolute horizontal distance between Mario and this object
+            ^y-distance INT         # The absolute vertical distance between Mario and this object
+            ^distance FLOAT         # The straight-line distance from Mario to this object
     
 
 output-link
-    ^key-press                  # A key press command
-        ^value left             # Move left
-        ^value right            # Move right
-        ^value A                # Jump
-        ^value B                # Shoot fireball (if Mario has that power-up)
+    ^key-press                      # A key press command
+        ^value left                 # Move left
+        ^value right                # Move right
+        ^value A                    # Jump
+        ^value B                    # Shoot fireball (if Mario has that power-up)
     ^message
-        ^value STRING           # A message to display on the screen
+        ^value STRING               # A message to display on the screen
