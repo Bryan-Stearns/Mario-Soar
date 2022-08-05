@@ -103,7 +103,6 @@ sp {apply*jump
             ^io.output-link <ol>)
     -->
     (write |JUMPING| (crlf))
-    (interrupt)
     (<ol> ^key-press <k-new>
         ^message <m-new>)
     (<k-new> ^value A)

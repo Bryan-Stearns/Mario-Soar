@@ -80,6 +80,7 @@ sp {apply*mario*move-right
     (<kp-new> ^value right)}
 
 
+
 #####
 ## OPERATOR: jump
 ## Make Mario jump by pressing the "A" (jump) key
@@ -106,20 +107,7 @@ sp {apply*mario*jump
     # This action creates a new command on the output-link which tells Mario to jump (by pressing the 'A' key)
     (<ol> ^key-press <kp-new>)
     (<kp-new> ^value A)}
-# sp {propose*mario*jump
-#     "Always propose to make Mario jump"
-#     (state <s> ^io.input-link <il>)
-#     (<il> ^mario.body.y-speed <= 0)
-#     -->
-#     (<s> ^operator <o> + = >)
-#     (<o> ^name jump)}
 
-# sp {apply*mario*jump
-#     (state <s> ^operator.name jump
-#             ^io.output-link <ol>)
-#     -->
-#     (<ol> ^key-press <k-new>)
-#     (<k-new> ^value A)}
 
 
 #####
