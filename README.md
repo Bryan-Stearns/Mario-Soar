@@ -6,11 +6,12 @@ Note that this is not as full-featured as the original Super Mario Bros. game. I
 
 ## Using with Soar
 
-* Run the program with no command line arguments to play the game yourself.
-* Run the program with a path to a .soar agent file to have that Soar agent play the game.
+* You must first have Soar installed on your machine, with the SOAR_HOME environment variable set appropriately. (See the Soar website for details on installation.)
+* Run the .jar file with no command line arguments to play the game yourself.
+* Run the .jar file with a path to a .soar agent file as a first argument to have that Soar agent play the game.
     * (See the docs/agent-io-spec.txt file to see the input/output structures that your Soar agent can use.)
-* Run the program with the "--open-debugger" flag as a second argument to automatically open a Soar Java Debugger with your Soar agent.
-    * (Press F1 while the game is running to toggle debug mode, which shows object coordinates on the screen. You can compare these with agent input structures.)
+* Run the .jar file with the "--open-debugger" flag as a second argument to automatically open a Soar Java Debugger with your Soar agent.
+    * (Press F1 while the game is running to toggle debug mode, which shows object coordinates on the screen (you can compare these with agent input structures) and allows human control intervention.)
 
 ## Game code modifications by Bryan Stearns
 
