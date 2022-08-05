@@ -1,0 +1,127 @@
+soar wait-snc on
+
+
+#######
+sp {propose*init
+    (state <s> ^superstate nil
+            -^name)
+    -->
+    (<s> ^operator <o> + >)
+    (<o> ^name init)}
+
+sp {apply*init
+    (state <s> ^operator.name init)
+    -->
+    (<s> ^name mario
+        ^wait-count 60)}
+
+#######
+sp {propose*wait
+    (state <s> ^name mario
+            ^wait-count > 0)
+    -->
+    (<s> ^operator <o> + < )
+    (<o> ^name wait)}
+
+sp {apply*wait
+    (state <s> ^operator.name wait
+            ^wait-count {<count> > 0})
+    -->
+    (<s> ^wait-count <count> -
+        ^wait-count (- <count> 1))}
+
+sp {apply-any*wait*reset
+    "For any operator, reset the count when it reaches 0"
+    (state <s> ^operator <o>
+            ^wait-count {<count> <= 0})
+    -->
+    (<s> ^wait-count <count> -
+        ^wait-count 60)}
+
+#######
+sp {propose*right
+    "Go left if at a timer interval and not already going left"
+    (state <s> ^name mario
+            ^wait-count <= 0
+            ^io <io>)
+    (<io> ^input-link <il>
+        ^output-link <ol>)
+    (<ol> -^key-press.value right)
+    -->
+    (<s> ^operator <o> + = 0.4)
+    (<o> ^name right)}
+
+sp {apply*right
+    (state <s> ^operator.name right
+            ^io.output-link <ol>)
+    -->
+    (write |RIGHT| (crlf))
+    (<ol> ^key-press <k-new>
+        ^message <m-new>)
+    (<k-new> ^value right)
+    (<m-new> ^value |Going right!|)}
+
+#######
+sp {propose*left
+    "Go left if at a timer interval and not already going left"
+    (state <s> ^name mario
+            ^wait-count <= 0
+            ^io <io>)
+    (<io> ^input-link <il>
+        ^output-link <ol>)
+    (<ol> -^key-press.value left)
+    -->
+    (<s> ^operator <o> + = 0.1)
+    (<o> ^name left)}
+
+sp {apply*left
+    (state <s> ^operator.name left
+            ^io.output-link <ol>)
+    -->
+    (write |LEFT| (crlf))
+    (<ol> ^key-press <k-new>
+        ^message <m-new>)
+    (<k-new> ^value left)
+    (<m-new> ^value |Going left!|)}
+
+#######
+sp {propose*jump
+    "Jump if at a timer interval and not already jumping"
+    (state <s> ^name mario
+            ^wait-count <= 0
+            ^io <io>)
+    (<io> ^input-link <il>
+        ^output-link <ol>)
+    (<il> ^mario.body.y-speed 0.0)
+    (<ol> -^key-press.value A)
+    -->
+    (<s> ^operator <o> + = 0.8)
+    (<o> ^name jump)}
+
+sp {apply*jump
+    (state <s> ^operator.name jump
+            ^io.output-link <ol>)
+    -->
+    (write |JUMPING| (crlf))
+    (<ol> ^key-press <k-new>
+        ^message <m-new>)
+    (<k-new> ^value A)
+    (<m-new> ^value |Jumping!|)}
+
+#######
+sp {propose*clear-output
+    (state <s> ^io.output-link <ol>
+            ^wait-count <= 0)
+    (<ol> ^<command>.status complete)
+    -->
+    (<s> ^operator <o> + > =)
+    (<o> ^name clear-output)}
+
+sp {apply*clear-output
+    (state <s> ^operator.name clear-output
+            ^io.output-link <ol>)
+    (<ol> ^<command> <obj>)
+    (<obj> ^status complete)
+    -->
+    (write |CLEARING ^| <command> | | <obj> (crlf))
+    (<ol> ^<command> <obj> -)}
