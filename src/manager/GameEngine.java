@@ -338,7 +338,12 @@ public class GameEngine implements Runnable {
                 selectOption(false);
             }
         }
-        else if(gameStatus == GameStatus.MAP_SELECTION){
+        else if (gameStatus == GameStatus.HELP_SCREEN || gameStatus == GameStatus.ABOUT_SCREEN) {
+            if (input == ButtonAction.GO_TO_START_SCREEN) {
+                setGameStatus(GameStatus.START_SCREEN);
+            }
+        }
+        else if (gameStatus == GameStatus.MAP_SELECTION) {
             if(input == ButtonAction.SELECT){
                 selectMapViaKeyboard();
             }
@@ -372,7 +377,10 @@ public class GameEngine implements Runnable {
                 mario.setKeypress_moveLeft(false);
                 //mario.setVelX(0);
             } else if (input == ButtonAction.FIRE) {
+                mario.setKeypress_fire(true);
                 mapManager.fire(this);
+            } else if (input == ButtonAction.FIRE_RELEASED) {
+                mario.setKeypress_fire(false);
             } else if (input == ButtonAction.PAUSE_RESUME) {
                 pauseGame(null);
             } else if (input == ButtonAction.TOGGLE_DEBUG) {
@@ -383,7 +391,7 @@ public class GameEngine implements Runnable {
             if (input == ButtonAction.PAUSE_RESUME) {
                 pauseGame(null);
             }
-            else if(input == ButtonAction.GO_TO_START_SCREEN){
+            else if (input == ButtonAction.GO_TO_START_SCREEN) {
                 if (isSoarControlled()) {
                     setAgentTextBoxVisible(false);
                 }
@@ -447,6 +455,10 @@ public class GameEngine implements Runnable {
 
     public SoundManager getSoundManager() {
         return soundManager;
+    }
+
+    public MarioSoarLink getSoarLink() {
+        return soarLink;
     }
 
     public GameStatus getGameStatus() {

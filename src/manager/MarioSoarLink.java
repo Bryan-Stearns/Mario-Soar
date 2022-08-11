@@ -3,16 +3,13 @@ package manager;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-//import javax.lang.model.util.ElementScanner14;
-
 import com.optum.ect.soar.SoarLinkAbstract;
-import com.optum.ect.soar.SoarMemObj;
-import com.optum.ect.soar.SoarValueType;
 
 import model.EndFlag;
 import model.GameObject;
 import model.Map;
 import model.brick.Brick;
+import model.brick.OrdinaryBrick;
 import model.enemy.Enemy;
 import model.enemy.KoopaTroopa;
 import model.hero.Mario;
@@ -180,23 +177,137 @@ public class MarioSoarLink extends SoarLinkAbstract {
         return false;
     }*/
 
+    /**
+     * If the given attribute/value pair exists as a WME under the given ID, return the WME.
+     * Else return null.
+     * @param id The Identifier to look under
+     * @param attribute The attribute pattern to search for
+     * @param value The value to search for under the given attribute 
+     * @return The WME that matches the attr:val pattern, or null if none is found
+     */
+    private WMElement findWME(Identifier id, String attribute, Identifier value) {
+        for (int i=0, iLim=id.GetNumberChildren(); i<iLim; ++i) {
+            WMElement child = id.GetChild(i);
+            if (child.GetAttribute().equals(attribute) && child.GetValueAsString().equals(value.GetValueAsString())) {
+                return child;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * If the given WME doesn't yet exist on the given ID, remove and prior WMEs with the same attribute name, and create the new WME.
+     * Else, do nothing.
+     * @param id The ID to check and possibly add/remove WMEs from
+     * @param attribute The attribute to check and possibly add/remove
+     * @param value The value to add
+     */
+    private void replaceStringWMENoBlink(Identifier id, String attribute, String value) {
+        // Check if the given WME already exists
+        WMElement child = id.FindByAttribute(attribute, 0);
+        if (child != null) {
+            // Check if the value is the same
+            if (child.ConvertToStringElement().GetValue().equals(value)) {
+                // Do nothing
+                return;
+            }
+            else {
+                // Remove the old element before we add the new one
+                child.DestroyWME();
+            }
+        }
+
+        // Now add the new element
+        id.CreateStringWME(attribute, value);
+    }
+    /**
+     * If the given WME doesn't yet exist on the given ID, remove and prior WMEs with the same attribute name, and create the new WME.
+     * Else, do nothing.
+     * @param id The ID to check and possibly add/remove WMEs from
+     * @param attribute The attribute to check and possibly add/remove
+     * @param value The value to add
+     */
+    private void replaceIntWMENoBlink(Identifier id, String attribute, long value) {
+        // Check if the given WME already exists
+        WMElement child = id.FindByAttribute(attribute, 0);
+        if (child != null) {
+            // Check if the value is the same
+            if (child.ConvertToIntElement().GetValue() == value) {
+                // Do nothing
+                return;
+            }
+            else {
+                // Remove the old element before we add the new one
+                child.DestroyWME();
+            }
+        }
+
+        // Now add the new element
+        id.CreateIntWME(attribute, value);
+    }
+    /**
+     * If the given WME doesn't yet exist on the given ID, remove and prior WMEs with the same attribute name, and create the new WME.
+     * Else, do nothing.
+     * @param id The ID to check and possibly add/remove WMEs from
+     * @param attribute The attribute to check and possibly add/remove
+     * @param value The value to add
+     */
+    private void replaceFloatWMENoBlink(Identifier id, String attribute, double value) {
+        // Check if the given WME already exists
+        WMElement child = id.FindByAttribute(attribute, 0);
+        if (child != null) {
+            // Check if the value is the same
+            if (child.ConvertToFloatElement().GetValue() == value) {
+                // Do nothing
+                return;
+            }
+            else {
+                // Remove the old element before we add the new one
+                child.DestroyWME();
+            }
+        }
+
+        // Now add the new element
+        id.CreateFloatWME(attribute, value);
+    }
+    /**
+     * If the given WME doesn't yet exist on the given ID, create the new WME.
+     * Else, do nothing.
+     * @param id The ID to check and possibly add/remove WMEs from
+     * @param attribute The attribute to check and possibly add/remove
+     * @param value The ID to add as the value of the WME
+     */
+    private void createIDWMENoBlink(Identifier id, String attribute, Identifier value) {
+        // Check if the given WME already exists
+        WMElement child = findWME(id, attribute, value);
+        if (child != null) {
+            // Do nothing if the WME already exists
+            return;
+        }
+
+        // Now add the new element
+        id.CreateSharedIdWME(attribute, value);
+    }
+
     private void refreshEnemyIDAugs(Identifier enemyId, Enemy enemy) {
         Mario mario = engine.getMapManager().getMario();
-        // Since only the type is unchanging, just clean it all and remake it. Saves processing.
-        cleanAllIdChildren(enemyId);
 
-        String type = "goomba";
-        if (enemy instanceof KoopaTroopa)
-            type = "koopatroopa";
+        if (enemyId.GetNumberChildren() == 0) {
+            // If this is a blank slate, make the unchanging augmentations
+            String type = "goomba";
+            if (enemy instanceof KoopaTroopa)
+                type = "koopatroopa";
 
-        enemyId.CreateStringWME("type", type);
-        enemyId.CreateIntWME("x", (int)enemy.getX());
-        enemyId.CreateIntWME("y", (int)enemy.getY());
-        enemyId.CreateIntWME("x-distance", Math.abs((int)mario.getRelativeX(enemy.getX())));
-        enemyId.CreateIntWME("y-distance", Math.abs((int)mario.getRelativeY(enemy.getY())));
-        enemyId.CreateFloatWME("x-speed", enemy.getVelX());
-        enemyId.CreateFloatWME("y-speed", enemy.isFalling() ? -enemy.getVelYAbs() : enemy.getVelYAbs());
-        enemyId.CreateFloatWME("distance", mario.getDistance(enemy.getX(), enemy.getY()));
+            enemyId.CreateStringWME("type", type);
+        }
+        // Add new content for the volatile augmentations
+        replaceIntWMENoBlink(enemyId, "x", (int)enemy.getX());
+        replaceIntWMENoBlink(enemyId, "y", (int)enemy.getY());
+        replaceIntWMENoBlink(enemyId, "x-distance", Math.abs((int)mario.getRelativeX(enemy.getX())));
+        replaceIntWMENoBlink(enemyId, "y-distance", Math.abs((int)mario.getRelativeY(enemy.getY())));
+        replaceFloatWMENoBlink(enemyId, "x-speed", enemy.getVelX());
+        replaceFloatWMENoBlink(enemyId, "y-speed", enemy.isFalling() ? -enemy.getVelYAbs() : enemy.getVelYAbs());
+        replaceFloatWMENoBlink(enemyId, "distance", mario.getDistance(enemy.getX(), enemy.getY()));
     }
 
     private void refreshBrickIDAugs(Identifier brickId, Brick brick) {
@@ -208,16 +319,10 @@ public class MarioSoarLink extends SoarLinkAbstract {
             brickId.CreateIntWME("x", (int)brick.getX());
             brickId.CreateIntWME("y", (int)brick.getY());
         }
-        else {
-            // If this is an update to an existing object, remove the old volatile augmentations
-            cleanIdAttrs(brickId, "x-distance", 1);
-            cleanIdAttrs(brickId, "y-distance", 1);
-            cleanIdAttrs(brickId, "distance", 1);
-        }
         // Add new content for the volatile augmentations
-        brickId.CreateIntWME("x-distance", Math.abs((int)mario.getRelativeX(brick.getX())));
-        brickId.CreateIntWME("y-distance", Math.abs((int)mario.getRelativeY(brick.getY())));
-        brickId.CreateFloatWME("distance", mario.getDistance(brick.getX(), brick.getY()));
+        replaceIntWMENoBlink(brickId, "x-distance", Math.abs((int)mario.getRelativeX(brick.getX())));
+        replaceIntWMENoBlink(brickId, "y-distance", Math.abs((int)mario.getRelativeY(brick.getY())));
+        replaceFloatWMENoBlink(brickId, "distance", mario.getDistance(brick.getX(), brick.getY()));
     }
 
     private String getPowerupType(BoostItem boost) {
@@ -234,29 +339,29 @@ public class MarioSoarLink extends SoarLinkAbstract {
 
     private void refreshBoostIDAugs(Identifier boostId, BoostItem boost, String boostType) {
         Mario mario = engine.getMapManager().getMario();
-        // Since only the type is unchanging, just clean it all and remake it. Saves processing.
-        cleanAllIdChildren(boostId);
 
-        boostId.CreateStringWME("type", boostType);
-        boostId.CreateIntWME("x", (int)boost.getX());
-        boostId.CreateIntWME("y", (int)boost.getY());
-        boostId.CreateIntWME("x-distance", Math.abs((int)mario.getRelativeX(boost.getX())));
-        boostId.CreateIntWME("y-distance", Math.abs((int)mario.getRelativeY(boost.getY())));
-        boostId.CreateFloatWME("x-speed", boost.getVelX());
-        boostId.CreateFloatWME("y-speed", boost.isFalling() ? -boost.getVelYAbs() : boost.getVelYAbs());
-        boostId.CreateFloatWME("distance", mario.getDistance(boost.getX(), boost.getY()));
+        if (boostId.GetNumberChildren() == 0) {
+            // If this is a blank slate, make the unchanging augmentations
+            boostId.CreateStringWME("type", boostType);
+        }
+        // Add new content for the volatile augmentations
+        replaceIntWMENoBlink(boostId, "x", (int)boost.getX());
+        replaceIntWMENoBlink(boostId, "y", (int)boost.getY());
+        replaceIntWMENoBlink(boostId, "x-distance", Math.abs((int)mario.getRelativeX(boost.getX())));
+        replaceIntWMENoBlink(boostId, "y-distance", Math.abs((int)mario.getRelativeY(boost.getY())));
+        replaceFloatWMENoBlink(boostId, "x-speed", boost.getVelX());
+        replaceFloatWMENoBlink(boostId, "y-speed", boost.isFalling() ? -boost.getVelYAbs() : boost.getVelYAbs());
+        replaceFloatWMENoBlink(boostId, "distance", mario.getDistance(boost.getX(), boost.getY()));
     }
 
     private void refreshEndFlagIDAugs(Identifier flagId, EndFlag endFlag) {
         Mario mario = engine.getMapManager().getMario();
-        // Just clean it all and remake it. Saves processing when the flag is moving.
-        cleanAllIdChildren(flagId);
 
-        flagId.CreateIntWME("x", (int)endFlag.getX());
-        flagId.CreateIntWME("y", (int)endFlag.getY());
-        flagId.CreateIntWME("x-distance", Math.abs((int)mario.getRelativeX(endFlag.getX())));
-        flagId.CreateIntWME("y-distance", Math.abs((int)mario.getRelativeY(endFlag.getY())));
-        flagId.CreateFloatWME("distance", mario.getDistance(endFlag.getX(), endFlag.getY()));
+        replaceIntWMENoBlink(flagId, "x", (int)endFlag.getX());
+        replaceIntWMENoBlink(flagId, "y", (int)endFlag.getY());
+        replaceIntWMENoBlink(flagId, "x-distance", Math.abs((int)mario.getRelativeX(endFlag.getX())));
+        replaceIntWMENoBlink(flagId, "y-distance", Math.abs((int)mario.getRelativeY(endFlag.getY())));
+        replaceFloatWMENoBlink(flagId, "distance", mario.getDistance(endFlag.getX(), endFlag.getY()));
         //flagId.CreateIntWME("height", (int)endFlag.getBounds().getHeight());
     }
 
@@ -289,6 +394,11 @@ public class MarioSoarLink extends SoarLinkAbstract {
         return retvalId;
     }
 
+    /**
+     * Get the Identifier that goes with the given hash of the associated GameObject
+     * @param obj_hash The hash of the GameObject to get the corresponding Identifier for
+     * @return The corresponding Identifier, if it exists, or null if it does not
+     */
     private Identifier getInputObjId(Integer obj_hash) {
 
         if (!objId_map.containsKey(obj_hash)) {
@@ -315,23 +425,20 @@ public class MarioSoarLink extends SoarLinkAbstract {
     }
 
     public void updateInput_mario(Mario mario, double remainingTime) {
-        // First clear the old values
-        cleanMarioWMEs();
-
         // Add HUD values
-        marioHud.CreateIntWME("time", (int)remainingTime);
-        marioHud.CreateIntWME("points", mario.getPoints());
-        marioHud.CreateIntWME("lives", mario.getRemainingLives());
+        replaceIntWMENoBlink(marioHud, "time", (int)remainingTime);
+        replaceIntWMENoBlink(marioHud, "points", mario.getPoints());
+        replaceIntWMENoBlink(marioHud, "lives", mario.getRemainingLives());
 
         // Add Body values
-        marioBody.CreateIntWME("x", (int)mario.getX());
-        marioBody.CreateIntWME("y", (int)mario.getY());
-        marioBody.CreateFloatWME("x-speed", mario.getVelX());
-        marioBody.CreateFloatWME("y-speed", mario.getVelYAbs() * (mario.isFalling() ? 1.0 : -1.0));
-        marioBody.CreateStringWME("is-super", (mario.isSuper() ? "true" : "false"));
-        marioBody.CreateStringWME("is-fire", (mario.getMarioForm().isFire() ? "true" : "false"));
-        marioBody.CreateIntWME("height", mario.getDimension().height);
-        marioBody.CreateIntWME("width", mario.getDimension().width);
+        replaceIntWMENoBlink(marioBody, "x", (int)mario.getX());
+        replaceIntWMENoBlink(marioBody, "y", (int)mario.getY());
+        replaceFloatWMENoBlink(marioBody, "x-speed", mario.getVelX());
+        replaceFloatWMENoBlink(marioBody, "y-speed", mario.getVelYAbs() * (mario.isFalling() ? 1.0 : -1.0));
+        replaceStringWMENoBlink(marioBody, "is-super", (mario.isSuper() ? "true" : "false"));
+        replaceStringWMENoBlink(marioBody, "is-fire", (mario.getMarioForm().isFire() ? "true" : "false"));
+        replaceIntWMENoBlink(marioBody, "height", mario.getDimension().height);
+        replaceIntWMENoBlink(marioBody, "width", mario.getDimension().width);
     }
 
     public void updateInput_enemies(ArrayList<Enemy> enemyList) {
@@ -370,7 +477,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
         for (int i=0, iLim=brickList.size(); i<iLim; ++i) {
             Brick b = brickList.get(i);
 
-            if (!map.isWithinCamera(b))
+            if (!map.isWithinCamera(b) || b.isBreaking())
                 continue;
 
             // Mark for later that this brick is within the camera view
@@ -388,10 +495,10 @@ public class MarioSoarLink extends SoarLinkAbstract {
             refreshBrickIDAugs(brickId, b);
 
             // Clear old touch augmentations
-            cleanIdAttrs(brickId, "touching-left", -1);
+            /*cleanIdAttrs(brickId, "touching-left", -1);
             cleanIdAttrs(brickId, "touching-right", -1);
             cleanIdAttrs(brickId, "touching-top", -1);
-            cleanIdAttrs(brickId, "touching-bottom", -1);
+            cleanIdAttrs(brickId, "touching-bottom", -1);*/
         }
 
         // Go through the list again and mark which bricks are touching
@@ -426,12 +533,12 @@ public class MarioSoarLink extends SoarLinkAbstract {
                     int xDiff = (int)(b1.getX() - b2.getX());
                     // If they are only brick.dimension.width=48 apart in x, they are touching
                     if (xDiff <= 48 && xDiff > 0) {
-                        b1Id.CreateSharedIdWME("touching-left", b2Id);
-                        b2Id.CreateSharedIdWME("touching-right", b1Id);
+                        createIDWMENoBlink(b1Id, "touching-left", b2Id);
+                        createIDWMENoBlink(b2Id, "touching-right", b1Id);
                     }
                     else if (xDiff >= -48 && xDiff < 0) {
-                        b1Id.CreateSharedIdWME("touching-right", b2Id);
-                        b2Id.CreateSharedIdWME("touching-left", b1Id);
+                        createIDWMENoBlink(b1Id, "touching-right", b2Id);
+                        createIDWMENoBlink(b2Id, "touching-left", b1Id);
                     }
                 }
                 // Test if they have the same x
@@ -439,12 +546,12 @@ public class MarioSoarLink extends SoarLinkAbstract {
                     int yDiff = (int)(b1.getY() - b2.getY());
                     // If they are only brick.dimension.height=48 apart in y, they are touching
                     if (yDiff <= 48 && yDiff > 0) {
-                        b1Id.CreateSharedIdWME("touching-top", b2Id);
-                        b2Id.CreateSharedIdWME("touching-bottom", b1Id);
+                        createIDWMENoBlink(b1Id, "touching-top", b2Id);
+                        createIDWMENoBlink(b2Id, "touching-bottom", b1Id);
                     }
                     else if (yDiff >= -48 && yDiff < 0) {
-                        b1Id.CreateSharedIdWME("touching-bottom", b2Id);
-                        b2Id.CreateSharedIdWME("touching-top", b1Id);
+                        createIDWMENoBlink(b1Id, "touching-bottom", b2Id);
+                        createIDWMENoBlink(b2Id, "touching-top", b1Id);
                     }
                 }
             } // END for (int j=i+1, jLim=brickList.size(); j<jLim; ++j)
@@ -498,8 +605,14 @@ public class MarioSoarLink extends SoarLinkAbstract {
         }
     }
 
-    public void addInput_touching(ArrayList<GameObject> marioCollidersTop, ArrayList<GameObject> marioCollidersBottom,
+    public void updateInput_marioTouching(ArrayList<GameObject> marioCollidersTop, ArrayList<GameObject> marioCollidersBottom,
             ArrayList<GameObject> marioCollidersLeft, ArrayList<GameObject> marioCollidersRight) {
+        // First clear old touching WMEs
+        cleanIdAttrs(marioBody, "touching-top", -1);
+        cleanIdAttrs(marioBody, "touching-bottom", -1);
+        cleanIdAttrs(marioBody, "touching-left", -1);
+        cleanIdAttrs(marioBody, "touching-right", -1);
+        // Then add refreshed touch WMEs
         addInput_touching_named("touching-top", marioCollidersTop);
         addInput_touching_named("touching-bottom", marioCollidersBottom);
         addInput_touching_named("touching-left", marioCollidersLeft);
@@ -523,6 +636,45 @@ public class MarioSoarLink extends SoarLinkAbstract {
         refreshedObjectHashes.clear();
         // Refresh the agent's I/O
         agent.Commit();
+    }
+
+    public void removeBrickTouchLinks(OrdinaryBrick brick) {
+        Identifier removeBrick = getInputObjId(brick.hashCode());
+        if (removeBrick == null)
+            return;
+        
+        for (int i=0, iLim=bricksRoot.GetNumberChildren(); i<iLim; ++i) {
+            Identifier brickChild = bricksRoot.GetChild(i).ConvertToIdentifier();
+            // First check if this brick is the brick we're removing links to
+            if (brickChild.GetValueAsString().equals(removeBrick.GetValueAsString())) {
+                // Remove any outgoing touch links
+                cleanIdAttrs(brickChild, "touching-top", -1);
+                cleanIdAttrs(brickChild, "touching-bottom", -1);
+                cleanIdAttrs(brickChild, "touching-left", -1);
+                cleanIdAttrs(brickChild, "touching-right", -1);
+                continue;
+            }
+            // Check touching-top
+            WMElement target = findWME(brickChild, "touching-top", removeBrick);
+            if (target != null) {
+                target.DestroyWME();
+            }
+            // Check touching-bottom
+            target = findWME(brickChild, "touching-bottom", removeBrick);
+            if (target != null) {
+                target.DestroyWME();
+            }
+            // Check touching-left
+            target = findWME(brickChild, "touching-left", removeBrick);
+            if (target != null) {
+                target.DestroyWME();
+            }
+            // Check touching-right
+            target = findWME(brickChild, "touching-right", removeBrick);
+            if (target != null) {
+                target.DestroyWME();
+            }
+        }
     }
     
     @Override
@@ -657,6 +809,7 @@ public class MarioSoarLink extends SoarLinkAbstract {
         else if (keyPressed_B && !output_keyPressed_B) {
             // Release B key
             keyPressed_B = false;
+            engine.receiveInput(ButtonAction.FIRE_RELEASED);
         }
     }
 

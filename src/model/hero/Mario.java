@@ -20,7 +20,8 @@ public class Mario extends GameObject{
 
     private boolean keyPressed_moveLeft = false,
                     keyPressed_moveRight = false,
-                    keyPressed_jump = false;
+                    keyPressed_jump = false,
+                    keyPressed_fire = false;
     private double jumpStartY;
     private boolean invisible = false;
 
@@ -80,7 +81,7 @@ public class Mario extends GameObject{
         if (keyPressed_moveLeft) {
             if (!keyPressed_moveRight) {
                 // Move left
-                velX = -5;
+                velX = (keyPressed_fire ? -7 : -4.5);
                 toRight = false;
             }
             else {
@@ -90,7 +91,7 @@ public class Mario extends GameObject{
         }
         else if (keyPressed_moveRight) {
             // Move right
-            velX = 5;
+            velX = (keyPressed_fire ? 7 : 4.5);
             toRight = true;
         }
         else {
@@ -119,6 +120,10 @@ public class Mario extends GameObject{
 
     public void setKeypress_jump(boolean jump) {
         keyPressed_jump = jump;
+    }
+
+    public void setKeypress_fire(boolean fire) {
+        keyPressed_fire = fire;
     }
 
     public boolean getKeypress_jump() {

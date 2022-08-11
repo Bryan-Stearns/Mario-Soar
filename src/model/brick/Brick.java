@@ -48,4 +48,8 @@ public abstract class Brick extends GameObject{
     public Prize getPrize() {
         return null;
     }
+
+    public boolean isBreaking() {
+        return false;
+    }
 }

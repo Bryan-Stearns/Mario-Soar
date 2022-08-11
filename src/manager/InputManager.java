@@ -86,6 +86,8 @@ public class InputManager implements KeyListener, MouseListener {
             notifyInput(ButtonAction.RIGHT_RELEASED);
         else if (event.getKeyCode() == KeyEvent.VK_UP)
             notifyInput(ButtonAction.JUMP_RELEASED);
+        else if (event.getKeyCode() == KeyEvent.VK_SPACE)
+            notifyInput(ButtonAction.FIRE_RELEASED);
     }
 
     private void notifyInput(ButtonAction action) {

@@ -40,6 +40,10 @@ public class OrdinaryBrick extends Brick {
 
         breaking = true;
         manager.addRevealedBrick(this);
+        // Remove this brick from the Soar input-link
+        if (engine.isSoarControlled()) {
+            engine.getSoarLink().removeBrickTouchLinks(this);
+        }
 
         double newX = getX() - 27, newY = getY() - 27;
         setLocation(newX, newY);
@@ -56,5 +60,10 @@ public class OrdinaryBrick extends Brick {
             setStyle(animation.animate(3, true));
             frames--;
         }
+    }
+
+    @Override
+    public boolean isBreaking() {
+        return breaking;
     }
 }

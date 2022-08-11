@@ -38,7 +38,9 @@ Note that this is not as full-featured as the original Super Mario Bros. game. I
 * Made Mario y-value adjust when he shrinks
 * Fixed bug where camera.shaking would never turn false once made true
 * Made enemies reverse x-direction when hitting Mario and making him shrink
-* Added debug command F1 to show object coordinates
+* Added debug command F1 to show object coordinates and allow control override over Soar agent
+* Added ability to run when holding down the Fire button
+* Tweaked walking/running speeds
 
 ## In-game Screens
 

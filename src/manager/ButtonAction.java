@@ -11,6 +11,7 @@ public enum ButtonAction {
     LEFT_RELEASED,
     RIGHT_RELEASED,
     JUMP_RELEASED,
+    FIRE_RELEASED,
     SELECT,
     GO_UP,
     GO_DOWN,
